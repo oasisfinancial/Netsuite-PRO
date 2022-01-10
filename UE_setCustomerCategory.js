@@ -58,8 +58,19 @@ define(['N/search', 'N/record', 'N/runtime'],
 
         //If the Latest Status is Pending Assignment, Assignment Sent and Funded
         //Then set the Marketing Category to “Approved”
+        
+        if(latestatus=='1')
+         {
+              record.submitFields({
+              type: 'customer',
+              id: customerid,
+              values: {
+                'custentity_marketing_categories': 1
+              }
+            });
+          }
 
-        if (latestatus == '6' || latestatus == '7' || latestatus == '8') {
+        else if (latestatus == '6' || latestatus == '7' || latestatus == '8') {
 
           record.submitFields({
             type: 'customer',
