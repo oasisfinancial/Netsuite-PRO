@@ -38,6 +38,16 @@ function Prospectives(request,response)
 	var statuses = [];
 	
 	var search = nlapiLoadSearch("customrecord_case_status","customsearch_prospective_customers");
+	
+	///////// New Change to add filter ///////////
+
+	var filterArray = [];
+	filterArray.push(["created",'onorafter', "thirtydaysago"]);
+	search.filterExpression = filterArray;
+	var filters = search.filterExpression;
+	
+	//////////////////////////////////////////////
+	
 	var searchId = 0;
 	
 	var resultSet = search.runSearch();
