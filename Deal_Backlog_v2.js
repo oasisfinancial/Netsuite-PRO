@@ -1,11 +1,11 @@
 function Deal_Backlog(request,response)
 {
 	var form = nlapiCreateForm("Deal Backlog");
-	
+
 	form.setScript("customscript_deal_backlog_cs");
-	
+
 	var context = nlapiGetContext();
-	
+
 	var list = form.addSubList("custpage_deals","list","Deals");
 	var fld = list.addField("custpage_customer_internalid","text","Customer Internal ID");
 	fld.setDisplayType("hidden");
@@ -16,15 +16,17 @@ function Deal_Backlog(request,response)
 	list.addField("custpage_decedent_name","text","Decedent Name");
 	list.addField("custpage_marketing_channel","select","Marketing Channel","campaign");
 	fld.setDisplaySize(12);
+
 	//list.addField("custpage_state","text","State");
 	list.addField("custpage_county","text","County");
 	fld = list.addField("custpage_quote_internalid","text","Quote Internal ID");
 	fld.setDisplayType("hidden");
 	list.addField("custpage_advance_size","currency","Advance Size");
-	list.addField("custpage_option_1","currency","Option 1");
-	list.addField("custpage_option_2","currency","Option 2");
+	//list.addField("custpage_option_1","currency","Option 1");
+	//list.addField("custpage_option_2","currency","Option 2");
 	//list.addField("custpage_option_3","currency","Option 3");
-	list.addField("custpage_assignment","currency","Assignment");
+	//list.addField("custpage_assignment","currency","Assignment");
+	list.addField("custpage_diligence","select","Diligence Assignee","employee");
 	list.addField("custpage_last_update","text","Last Update");
 	fld = list.addField("custpage_case_status_internalid","select","Case Status Internal ID","customrecord_case_status");
 	fld.setDisplayType("hidden");
@@ -33,44 +35,46 @@ function Deal_Backlog(request,response)
 	fld.setDisplayType("entry");
 	fld.setDisplaySize(25,2);
 	list.addField("custpage_sales_person","select","Sales Person","employee");
-	
+
 	nlapiLogExecution("debug","Usage after form objects",context.getRemainingUsage());
-	
+
 	var customerIds = [];
-	
+
 	var statuses = [];
-	
+
 	//var results = nlapiSearchRecord("customrecord_case_status","customsearch_deal_backlog_customers");
 	var search = nlapiLoadSearch("customrecord_case_status","customsearch_deal_backlog_customers");
+
+
 	var resultSet = search.runSearch();
 	var searchId = 0;
-	
+
 	do{
 		var results = resultSet.getResults(searchId,searchId+1000);
-		
+
 		for(var x=0; x < results.length; x++)
 		{
 			var cols = results[x].getAllColumns();
 			var statusIdCol = null;
-			
+
 			for(var i=0; i < cols.length; i++)
 			{
 				//nlapiLogExecution("debug","Column[" + i + "]","Label: " + cols[i].getLabel());
-				
+
 				if(cols[i].getLabel()=="Status ID")
 				{
 					statusIdCol = cols[i];
 					break;
 				}
 			}
-			
+
 			searchId++;
-			
+
 			if(results[x].getValue(statusIdCol)=="1" || results[x].getValue(statusIdCol)=="8" || results[x].getValue(statusIdCol)=="9" || results[x].getValue(statusIdCol)=="10")
 				continue;
-			
+
 			customerIds.push(results[x].getValue("custrecord_case_status_customer",null,"group"));
-			
+
 			statuses.push({
 				customer : results[x].getValue("custrecord_case_status_customer",null,"group"),
 				status : results[x].getValue(statusIdCol),
@@ -79,21 +83,21 @@ function Deal_Backlog(request,response)
 				last_modified : results[x].getValue("lastmodified",null,"max")
 			});
 		}
-		
+
 	}while(results.length >= 1000);
-	
+
 	nlapiLogExecution("debug","Usage after status search",context.getRemainingUsage());
-	
+
 	nlapiLogExecution("debug","Status JSON",JSON.stringify(statuses));
-	
+
 	if(customerIds!=null && customerIds.length > 0)
 	{
 		var data = [];
-		
+
 		var customerUrl = nlapiResolveURL("SUITELET","customscript_new_customer_application","customdeploy_new_customer_application");
-		
+
 		var quoteCustomers = [];
-		
+
 		var filters = [];
 		filters.push(new nlobjSearchFilter("entity",null,"anyof",customerIds));
 		filters.push(new nlobjSearchFilter("mainline",null,"is","T"));
@@ -115,22 +119,23 @@ function Deal_Backlog(request,response)
 		cols.push(new nlobjSearchColumn("lastname","customer"));
 		cols.push(new nlobjSearchColumn("custentity_last_notes_from_cust_contact","customer"));
 		cols.push(new nlobjSearchColumn("leadsource","customer"));
+		cols.push(new nlobjSearchColumn("custentity_diligence_assignee","customer"));
 		var results = nlapiSearchRecord("estimate",null,filters,cols);
 		if(results)
 		{
 			nlapiLogExecution("debug","# Estimates",results.length);
-			
+
 			for(var x=0; x < results.length; x++)
 			{
 				var customerId = results[x].getValue("entity");
 				quoteCustomers.push(customerId);
-				
+
 				var estateId = results[x].getValue("parent","customer");
-				
+
 				var lineLink = customerUrl + "&customer=" + customerId + "&estate=" + estateId;
-				
+
 				var status = "", statusInternalId = "", notes = "", modified = "";
-				
+
 				for(var i=0; i < statuses.length; i++)
 				{
 					if(statuses[i].customer == customerId)
@@ -142,7 +147,7 @@ function Deal_Backlog(request,response)
 						break;
 					}
 				}
-				
+
 				data.push({
 					custpage_customer_internalid : results[x].getValue("entity"),
 					custpage_customer_first_name : "<a href='" + lineLink + "' target='_blank'>" + results[x].getValue("firstname","customer") + "</a>",
@@ -155,10 +160,11 @@ function Deal_Backlog(request,response)
 					custpage_notes : notes,
 					custpage_quote_internalid : results[x].getId(),
 					custpage_advance_size : results[x].getValue("custbody_advance_size"),
-					custpage_option_1 : results[x].getValue("custbody_option_1_pricing"),
-					custpage_option_2 : results[x].getValue("custbody_option_2_pricing"),
-					custpage_option_3 : results[x].getValue("custbody_option_3_pricing"),
-					custpage_assignment : results[x].getValue("custbody_assignment_size"),
+					custpage_diligence: results[x].getValue("custentity_diligence_assignee","customer"),
+					//custpage_option_1 : results[x].getValue("custbody_option_1_pricing"),
+					//custpage_option_2 : results[x].getValue("custbody_option_2_pricing"),
+					//custpage_option_3 : results[x].getValue("custbody_option_3_pricing"),
+					//custpage_assignment : results[x].getValue("custbody_assignment_size"),
 					custpage_sales_person : results[x].getValue("salesrep"),
 					custpage_case_status : status,
 					custpage_case_status_internalid : statusInternalId,
@@ -166,9 +172,9 @@ function Deal_Backlog(request,response)
 				});
 			}
 		}
-		
+
 		nlapiLogExecution("debug","Usage after estimate search",context.getRemainingUsage());
-		
+
 		var filters = [];
 		filters.push(new nlobjSearchFilter("internalid",null,"anyof",customerIds));
 		filters.push(new nlobjSearchFilter("internalid",null,"noneof",quoteCustomers));
@@ -182,20 +188,21 @@ function Deal_Backlog(request,response)
 		cols.push(new nlobjSearchColumn("custentity_last_notes_from_cust_contact"));
 		cols.push(new nlobjSearchColumn("leadsource"));
 		cols.push(new nlobjSearchColumn("salesrep"));
+		cols.push(new nlobjSearchColumn("custentity_diligence_assignee"));
 		var results = nlapiSearchRecord("customer",null,filters,cols);
 		if(results)
 		{
 			nlapiLogExecution("debug","# Customers",results.length);
-			
+
 			for(var x=0; x < results.length; x++)
 			{
 				var customerId = results[x].getId();
 				var estateId = results[x].getValue("parent");
-				
+
 				var lineLink = customerUrl + "&customer=" + customerId + "&estate=" + estateId;
-				
+
 				var status = "", statusInternalId = "", notes = "", modified = "";
-				
+
 				for(var i=0; i < statuses.length; i++)
 				{
 					if(statuses[i].customer == customerId)
@@ -207,7 +214,7 @@ function Deal_Backlog(request,response)
 						break;
 					}
 				}
-				
+
 				data.push({
 					custpage_customer_internalid : results[x].getId(),
 					custpage_customer_first_name : "<a href='" + lineLink + "' target='_blank'>" + results[x].getValue("firstname") + "</a>",
@@ -220,10 +227,11 @@ function Deal_Backlog(request,response)
 					custpage_notes : notes,
 					custpage_quote_internalid : "",
 					custpage_advance_size : "",
-					custpage_option_1 : "",
-					custpage_option_2 : "",
-					custpage_option_3 : "",
-					custpage_assignment : "",
+					custpage_diligence: results[x].getValue("custentity_diligence_assignee"),
+					//custpage_option_1 : "",
+					//custpage_option_2 : "",
+					//custpage_option_3 : "",
+					//custpage_assignment : "",
 					custpage_sales_person : results[x].getValue("salesrep"),
 					custpage_case_status : status,
 					custpage_case_status_internalid : statusInternalId,
@@ -231,11 +239,11 @@ function Deal_Backlog(request,response)
 				});
 			}
 		}
-		
+
 		nlapiLogExecution("debug","Usage after customer search",context.getRemainingUsage());
-		
+
 		list.setLineItemValues(data);
 	}
-	
+
 	response.writePage(form);
 }
