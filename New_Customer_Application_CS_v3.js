@@ -123,13 +123,13 @@ function New_Cust_App_CS_FC(type, name, linenum) {
     }
 
     calcEstateTotals();
-  } else if (name == "custpage_first_name" || name == "custpage_middle_initial" || name == "custpage_last_name" || name == "custpage_address" || name == "custpage_city" || name == "custpage_state" || name == "custpage_zip" || name == "custpage_phone" || name == "custpage_email" || name == "custpage_how_did_they_find_us") {
+  } else if (name == "custpage_first_name" || name == "custpage_diligence_assignee" || name == "custpage_middle_initial" || name == "custpage_last_name" || name == "custpage_address" || name == "custpage_city" || name == "custpage_state" || name == "custpage_zip" || name == "custpage_phone" || name == "custpage_email" || name == "custpage_how_did_they_find_us") {
     var customerId = nlapiGetFieldValue("custpage_customer_id");
 
     if (customerId == null || customerId == "") {
       var firstName = nlapiGetFieldValue("custpage_first_name");
       var lastName = nlapiGetFieldValue("custpage_last_name");
-
+      var diligence_assignee = nlapiGetFieldValue("custpage_diligence_assignee");
       if (firstName != null && firstName != "" && lastName != null && lastName != "") {
         var customer = nlapiCreateRecord("customer");
         customer.setFieldValue("subsidiary", "2");
@@ -141,6 +141,8 @@ function New_Cust_App_CS_FC(type, name, linenum) {
         customer.setFieldValue("email", nlapiGetFieldValue("custpage_email"));
         customer.setFieldValue("leadsource", nlapiGetFieldValue("custpage_how_did_they_find_us"));
         customer.setFieldValue("category", "1");
+        if(diligence_assignee!=null && diligence_assignee!='')
+        customer.setFieldValue("custentity_diligence_assignee", diligence_assignee);
 
         if (nlapiGetFieldValue("custpage_estate") == null || nlapiGetFieldValue("custpage_estate") == "") {
           var estate = nlapiCreateRecord("customer");
@@ -162,7 +164,7 @@ function New_Cust_App_CS_FC(type, name, linenum) {
         nlapiSetFieldValue("custpage_customer_id", customerId, false, true);
       }
     } else {
-      if (name == "custpage_first_name" || name == "custpage_middle_initial" || name == "custpage_last_name" || name == "custpage_phone" || name == "custpage_email" || name == "custpage_how_did_they_find_us") {
+      if (name == "custpage_first_name" || name == "custpage_diligence_assignee" || name == "custpage_middle_initial" || name == "custpage_last_name" || name == "custpage_phone" || name == "custpage_email" || name == "custpage_how_did_they_find_us") {
         switch (name) {
           case "custpage_first_name":
             nlapiSubmitField("customer", customerId, "firstname", nlapiGetFieldValue(name));
@@ -176,11 +178,81 @@ function New_Cust_App_CS_FC(type, name, linenum) {
             nlapiSubmitField("customer", customerId, "lastname", nlapiGetFieldValue(name));
             nlapiSetFieldValue("custpage_customer_id", customerId, false, true);
             break;
+          case "custpage_diligence_assignee":
+            nlapiSubmitField("customer", customerId, "custentity_diligence_assignee", nlapiGetFieldValue(name));
+            nlapiSetFieldValue("custpage_customer_id", customerId, false, true);
+      
+                nlapiLogExecution("debug", "value of diligence",nlapiGetFieldValue('custpage_diligence_assignee'));
+                      console.log("value of diligence: "+nlapiGetFieldValue(name));
+        var todaydate=new Date();
+        var date=nlapiDateToString(todaydate);
+        var subject='Assigned Diligence assignee';
+        if(nlapiGetFieldValue('custpage_diligence_assignee'))
+        {
+        nlapiSelectNewLineItem('custpage_phonecalls')
+        //nlapiSetCurrentLineItemValue("custpage_phonecalls", "custpage_phonecalls_id", phonecallId, false, true);
+        nlapiSetCurrentLineItemValue("custpage_phonecalls", "custpage_phonecalls_message", subject, true, true);
+        nlapiSetCurrentLineItemValue("custpage_phonecalls", "custpage_phonecalls_title", subject, true, true);
+        nlapiSetCurrentLineItemValue("custpage_phonecalls", "custpage_phonecalls_owner", nlapiGetFieldValue('custpage_diligence_assignee'), true, true);
+        nlapiSetCurrentLineItemValue("custpage_phonecalls", "custpage_phonecalls_date", date, true, true);
+        nlapiCommitLineItem('custpage_phonecalls')
+      }
+        /*var phonecall = nlapiCreateRecord("phonecall", {
+          recordmode: "dynamic"
+        });
+        phonecall.setFieldValue("company", nlapiGetFieldValue("custpage_estate"));
+        phonecall.setFieldValue("title", subject);
+        //phonecall.setFieldValue("startdate", todaydate);
+        //phonecall.setFieldValue("phone", nlapiGetCurrentLineItemValue("custpage_phonecalls", "custpage_phonecalls_phone_number"));
+        phonecall.setFieldValue("assigned", nlapiGetFieldValue('custpage_diligence_assignee'));
+        phonecall.setFieldValue("message",  subject);
+        var phonecallId = nlapiSubmitRecord(phonecall, true, true);
+        console.log("value of diligence: "+ phonecallId );*/
+        
+        
+            break;
           case "custpage_phone":
             nlapiSubmitField("customer", customerId, "phone", nlapiGetFieldValue(name));
+      
+    
+      ///////// New Change to set marketing category vijay/////////////
+      
+      if(nlapiGetFieldValue(name))
+      {
+        var filters = [];
+        filters.push(new nlobjSearchFilter("custrecord_case_status_customer", null, "is", customerId));
+        var cols = [];
+        cols.push(new nlobjSearchColumn("custrecord_case_status_status"));
+        var exchangeResults = nlapiSearchRecord("customrecord_case_status", null, filters, cols);
+        var custid;
+        if (exchangeResults && exchangeResults.length ==1) {
+          
+          var cStatus=exchangeResults[0].getValue("custrecord_case_status_status");
+          if(cStatus==9 || cStatus==10)
+            nlapiSubmitField("customer", customerId, "custentity_marketing_categories", 1);
+        }
+      }
             break;
           case "custpage_email":
             nlapiSubmitField("customer", customerId, "email", nlapiGetFieldValue(name));
+      
+      ///////// New Change to set marketing category vijay/////////////
+      
+      if(nlapiGetFieldValue(name))
+      {
+        var filters = [];
+        filters.push(new nlobjSearchFilter("custrecord_case_status_customer", null, "is", customerId));
+        var cols = [];
+        cols.push(new nlobjSearchColumn("custrecord_case_status_status"));
+        var exchangeResults = nlapiSearchRecord("customrecord_case_status", null, filters, cols);
+        var custid;
+        if (exchangeResults && exchangeResults.length ==1) {
+          
+          var cStatus=exchangeResults[0].getValue("custrecord_case_status_status");
+          if(cStatus==9 || cStatus==10)
+            nlapiSubmitField("customer", customerId, "custentity_marketing_categories", 1);
+        }
+      }
             break;
           case "custpage_how_did_they_find_us":
             var campaignCategory = "";
@@ -253,8 +325,8 @@ function New_Cust_App_CS_FC(type, name, linenum) {
           nlapiSubmitField("customer", estateId, "custentity_est_date_of_distribution", nlapiGetFieldValue(name));
           break;
           case "custpage_est_status":
-			  nlapiSubmitField("customer", estateId, "custentity_est_status", nlapiGetFieldValue(name));
-			  break;
+        nlapiSubmitField("customer", estateId, "custentity_est_status", nlapiGetFieldValue(name));
+        break;
       }
     }
 
@@ -811,7 +883,9 @@ function New_Cust_App_CS_VL(type) {
         var lastCallStr = nlapiGetCurrentLineItemValue("custpage_phonecalls", "custpage_phonecalls_date") + " " + nlapiGetCurrentLineItemValue("custpage_phonecalls", "custpage_phonecalls_title");
         nlapiSetFieldValue("custpage_estate_next_phonecall", lastCallStr, true, true);
       }
-    } else if (type == "custpage_tasks") {
+    }
+
+    else if (type == "custpage_tasks") {
       var recordId = nlapiGetCurrentLineItemValue("custpage_tasks", "custpage_tasks_id");
 
       if (recordId != null && recordId != "") {
@@ -1684,13 +1758,14 @@ function updateCaseStatus() {
   statusRec.setFieldValue("custrecord_case_status_notes", caseStatusNotes);
   statusRec.setFieldValue("custrecord_case_status_customer", nlapiGetFieldValue("custpage_customer_id"));
   var statusRecId = nlapiSubmitRecord(statusRec, true, true);
-
+  
   nlapiSetFieldValue("custpage_latest_status", caseStatus, false, true);
   nlapiSetFieldValue("custpage_latest_status_notes", caseStatusNotes, false, true);
 
   nlapiSetFieldValue("custpage_update_case_status", "", false, true);
   nlapiSetFieldValue("custpage_update_case_status_notes", "", false, true);
 
+  
   var url = '/app/site/hosting/scriptlet.nl?script=180&deploy=1&r=T&machine=custpage_case_status_list&compid=5295340&customer=' + nlapiGetFieldValue("custpage_customer_id") + '&estate=' + nlapiGetFieldValue("custpage_estate");
   document.getElementById('server_commands').src = url;
 }
