@@ -1,5 +1,7 @@
 function Deal_Backlog_CS_FC(type,name,linenum)
-{
+{			
+
+   
 	if(type=="custpage_deals" && name=="custpage_marketing_channel")
 	{
 		try
@@ -102,5 +104,35 @@ function Deal_Backlog_CS_FC(type,name,linenum)
 		{
 			nlapiLogExecution("error","Error Updating Case Status Notes","Details: " + err.message);
 		}
-	}
+	} if(type=='custpage_deals'&&name=='custpage_diligence'){
+		try
+		{			console.log('enter')
+
+			var phonecall = nlapiCreateRecord("phonecall", {
+		          recordmode: "dynamic"
+		        });
+	        var subject='Assigned Diligence assignee';
+	        var todaydate=new Date();
+	        var date=nlapiDateToString(todaydate);
+         			var estateId = nlapiGetLineItemValue("custpage_deals","custpage_estate_internalid",linenum);
+         			var diligence = nlapiGetLineItemValue("custpage_deals","custpage_diligence",linenum);
+         var customerId = nlapiGetLineItemValue("custpage_deals","custpage_customer_internalid",linenum);
+                 if(diligence!=''&&diligence!=''){
+		        phonecall.setFieldValue("company", estateId);
+		        phonecall.setFieldValue("title", subject);
+		        phonecall.setFieldValue("startdate",date);
+		        phonecall.setFieldValue("assigned", diligence);
+		        phonecall.setFieldValue("message", subject);
+		        var phonecallId = nlapiSubmitRecord(phonecall, true, true);
+                   			console.log(phonecallId);
+                   nlapiSubmitField("customer", customerId, "custentity_diligence_assignee", diligence);
+                 }else{
+                nlapiSubmitField("customer", customerId, "custentity_diligence_assignee", '');}
+
+		}
+		catch(err)
+		{
+			nlapiLogExecution("error","Error Updating Case Status Notes","Details: " + err.message);
+		}
+   }
 }
