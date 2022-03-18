@@ -150,7 +150,7 @@ function New_Customer_Application(request, response) {
         fld = form.addField("custpage_last_name", "text", "Last Name", null, "customer");
         if (customer != null)
           fld.setDefaultValue(customer.getFieldValue("lastname"));
-  
+        
         fld = form.addField("custpage_address", "text", "Address", null, "customer");
         fld.setLayoutType("normal", "startcol");
         if (customer != null)
@@ -372,6 +372,9 @@ function New_Customer_Application(request, response) {
         fld = form.addField("custpage_personal_rep_1_id", "select", "Personal Rep 1 Contact ID", "contact", "estate");
         if (personalRepFlds != null)
           fld.setDefaultValue(personalRepFlds.getId());
+        fld = form.addField("custpage_diligence_assignee", "select", "Diligence Assignee", "employee", "estate");
+        if (customer.getFieldValue("custentity_diligence_assignee") != null)
+           fld.setDefaultValue(customer.getFieldValue("custentity_diligence_assignee"));
   
         nlapiLogExecution("debug", "Added Personal Rep");
   
