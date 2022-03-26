@@ -459,7 +459,7 @@ function New_Cust_App_CS_FC(type, name, linenum) {
         }
       }
     }
-  } else if (name == "custpage_latest_status") {
+  } /*else if (name == "custpage_latest_status") {
     try {
       var caseStatus = nlapiGetFieldValue("custpage_latest_status");
       var caseStatusRec = nlapiGetFieldValue("custpage_latest_status_id");
@@ -468,21 +468,49 @@ function New_Cust_App_CS_FC(type, name, linenum) {
     } catch (err) {
       nlapiLogExecution("error", "Error Updating Case Status", "Details: " + err.message);
     }
-  } else if (name == "custpage_latest_status_notes") {
+    
+  }*/
+  else if (name=='custpage_latest_status') {
     try {
+      console.log(name)
       var caseNotes = nlapiGetFieldValue("custpage_latest_status_notes");
       var caseStatus = nlapiGetFieldValue("custpage_latest_status");
       var customer = nlapiGetFieldValue("custpage_customer_id");
-
+      if(caseStatus){
       //Create new case status note
       var caseStatusRec = nlapiCreateRecord("customrecord_case_status");
+      if(caseStatus!=''&&caseStatus!=null)
       caseStatusRec.setFieldValue("custrecord_case_status_status", caseStatus);
+      if(caseNotes!=''&&caseNotes!='')
       caseStatusRec.setFieldValue("custrecord_case_status_notes", caseNotes);
       caseStatusRec.setFieldValue("custrecord_case_status_customer", customer);
       var caseStatusRecId = nlapiSubmitRecord(caseStatusRec, true, true);
-
+      console.log(caseStatusRecId)
       //Update latest status ID
       nlapiSetFieldValue("custpage_latest_status_id", caseStatusRecId, true, true);
+      }
+    } catch (err) {
+      nlapiLogExecution("error", "Error Updating Case Status Notes", "Details: " + err.message);
+    }
+  } else if (name == "custpage_latest_status_notes") {
+    try {
+      console.log(name)
+      var caseNotes = nlapiGetFieldValue("custpage_latest_status_notes");
+      var caseStatus = nlapiGetFieldValue("custpage_latest_status");
+      var customer = nlapiGetFieldValue("custpage_customer_id");
+      if(caseNotes){
+      //Create new case status note
+      var caseStatusRec = nlapiCreateRecord("customrecord_case_status");
+      if(caseStatus!=''&&caseStatus!=null)
+      caseStatusRec.setFieldValue("custrecord_case_status_status", caseStatus);
+      if(caseNotes!=''&&caseNotes!='')
+      caseStatusRec.setFieldValue("custrecord_case_status_notes", caseNotes);
+      caseStatusRec.setFieldValue("custrecord_case_status_customer", customer);
+      var caseStatusRecId = nlapiSubmitRecord(caseStatusRec, true, true);
+      console.log(caseStatusRecId)
+      //Update latest status ID
+      nlapiSetFieldValue("custpage_latest_status_id", caseStatusRecId, true, true);
+      }
     } catch (err) {
       nlapiLogExecution("error", "Error Updating Case Status Notes", "Details: " + err.message);
     }
@@ -823,6 +851,8 @@ function New_Cust_App_CS_VL(type) {
 
         nlapiSetFieldValue("custpage_latest_status", caseStatus, false, true);
         nlapiSetFieldValue("custpage_latest_status_notes", caseStatusNotes, false, true);
+
+
       }
     } else if (type == "custpage_contacts") {
       var recordId = nlapiGetCurrentLineItemValue("custpage_contacts", "custpage_contacts_id");
@@ -1092,6 +1122,28 @@ function createQuote() {
   try {
     //alert("Preparing to create quote");
 
+          var filters = [];
+          filters.push(new nlobjSearchFilter("entity", null, "is", nlapiGetFieldValue("custpage_customer_id")));
+          filters.push(new nlobjSearchFilter("mainline", null, "is", "T"));
+          //filters.push(new nlobjSearchFilter("custbody_preferred_quote",null, "is", "T"));
+          var cols = [];
+          cols.push(new nlobjSearchColumn("trandate"));
+          cols.push(new nlobjSearchColumn("tranid"));
+          cols.push(new nlobjSearchColumn("custbody_preferred_quote"));
+          var results = nlapiSearchRecord("estimate", null, filters, cols);
+          if (results) {
+           var preferred=false;
+            for (var x = 0; x < results.length; x++) {
+             if(results[x].getValue("custbody_preferred_quote")=='T'){
+               preferred=true;
+             }
+         }
+          if(preferred==false){
+           alert('No quote is selected as preferred');
+           } 
+        }
+
+ 
     var quote = nlapiCreateRecord("estimate", {
       recordmode: "dynamic"
     });
@@ -1102,6 +1154,9 @@ function createQuote() {
 
     var assignment = parseFloat(nlapiGetFieldValue("custpage_assignment_size"));
 
+    var linecount=nlapiGetLineItemCount('custpage_prior_quotes');
+    if(linecount==0)
+      quote.setFieldValue("custbody_preferred_quote", 'T');
     if (nlapiGetFieldValue("custpage_early_rebate_1_amt") != null && nlapiGetFieldValue("custpage_early_rebate_1_amt") != "")
       quote.setFieldValue("custbody_rebate_1_amount", assignment - parseFloat(nlapiGetFieldValue("custpage_early_rebate_1_amt")));
     if (nlapiGetFieldValue("custpage_early_rebate_2_amt") != null && nlapiGetFieldValue("custpage_early_rebate_2_amt") != "")
@@ -1236,7 +1291,6 @@ function createQuote() {
     quote.setFieldValue("custbody_personal_rep_name_address", personalRepStr);
 
     var quoteId = nlapiSubmitRecord(quote, true, true);
-
 
     //Refresh quote sublist with new values
     var url = '/app/site/hosting/scriptlet.nl?script=180&deploy=1&r=T&machine=custpage_prior_quotes&compid=5295340&customer=' + nlapiGetFieldValue("custpage_customer_id") + '&estate=' + nlapiGetFieldValue("custpage_estate");
