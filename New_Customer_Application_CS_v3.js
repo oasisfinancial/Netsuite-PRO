@@ -14,6 +14,21 @@ function New_Cust_App_CS_PI() {
 }
 
 function New_Cust_App_CS_FC(type, name, linenum) {
+
+   if (name == 'custpage_property_listingtype'&&type=='custpage_properties') {
+       var property_id = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_id");
+       var eventtype = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_listingtype")
+    console.log('eventtype',eventtype);
+         if(property_id)
+          nlapiSubmitField("customrecord_property", property_id, ["custrecord_listing_checkbox",'custrecord_event_type_new'],['T',eventtype] );
+      }
+      if (name == 'custpage_property_preforeclosure_status'&&type=='custpage_properties') {
+       var property_id = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_id");
+       var preforeclosure_status = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_preforeclosure_status")
+         console.log('preforeclosure_status',preforeclosure_status);
+         if(property_id)
+          nlapiSubmitField("customrecord_property", property_id, ["custrecord_preforeclosure_checkbox",'custrecord_preforeclosure_status'],['T',preforeclosure_status] );
+      }
   if (name == "custpage_customer_id" || name == "custpage_estate") {
     var url = nlapiResolveURL("SUITELET", "customscript_new_customer_application", "customdeploy_new_customer_application");
     url += "&customer=" + nlapiGetFieldValue("custpage_customer_id");
@@ -21,13 +36,60 @@ function New_Cust_App_CS_FC(type, name, linenum) {
 
     window.onbeforeunload = null;
     window.location.href = url;
-  } else if (type == "custpage_properties" && (name == "custpage_property_value" || name == "custpage_property_mortgage" || name == "custpage_property_owned")) {
+  }
+  else if(name=="custpage_wa_name" || name=="custpage_wa_state_name"){
+    var customerId=nlapiGetFieldValue("custpage_customer_id");
+    if(customerId!=null && customerId!=''){
+       switch (name) {
+    case "custpage_wa_name":
+      var wa_sl=nlapiGetFieldValue(name);
+      console.log('wa_sl '+wa_sl+'_customerId '+customerId);
+        var record_wa_cl = nlapiLoadRecord('customer', customerId)
+              record_wa_cl.setFieldValue('custentity_mmsdf_send_wf_sms', wa_sl, false, true);
+     var sl_id = nlapiSubmitRecord(record_wa_cl, true,true);
+      break;
+      
+      case "custpage_wa_state_name":
+      var wa_sl_s=nlapiGetFieldValue(name);
+        var record_sa_cl = nlapiLoadRecord('customer', customerId)
+              record_sa_cl.setFieldValue('custentity_mmsdf_stopsendingsms', wa_sl_s, false, true);
+     var sl_id_s = nlapiSubmitRecord(record_sa_cl, true,true);
+      break;
+       }
+    }
+      
+  }
+  else if (name == 'custpage_followup_assinged'&&type=='custpage_followup_list') {
+    var assigned = nlapiGetCurrentLineItemValue("custpage_followup_list", "custpage_followup_assinged");
+    var followupId = nlapiGetCurrentLineItemValue("custpage_followup_list", "custpage_followup_id");
+    if (followupId != null && followupId != "") {
+      nlapiSubmitField("customrecord_customer_follow_up", followupId, "custrecord_assigned", assigned);
+    }
+  }  
+ 
+  else if (type == "custpage_properties" && (name == "custpage_property_value" || name == "custpage_property_mortgage" || name == "custpage_property_owned"|| name == "custpage_property_note"|| name == "custpage_property_sold"||name=="custpage_property_escrow"||name=="custpage_property_dot")) {
     try {
       var value = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_value");
       var mortgage = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_mortgage");
       var owned = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_owned");
-
-      if (value != null && value != "" && owned != null && owned != "") {
+            var sold = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_sold");
+        var note = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_note");
+        var propertieId = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_id");
+            var escrow = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_escrow");
+            var dot = nlapiGetCurrentLineItemValue("custpage_properties", "custpage_property_dot");
+          if (name== "custpage_property_escrow"&&propertieId) {
+      nlapiSubmitField("customrecord_property", propertieId, "custrecord_escrow", escrow);
+        }
+        if (name== "custpage_property_dot"&&propertieId) {
+      nlapiSubmitField("customrecord_property", propertieId, "custrecord_dot", dot);
+        }
+      if (name== "custpage_property_sold"&&propertieId) {
+      nlapiSubmitField("customrecord_property", propertieId, "custrecord_sold", sold);
+        }
+        if (name=='custpage_property_note'||propertieId) {
+      nlapiSubmitField("customrecord_property", propertieId, "custrecord_notes", note);
+    }
+          if (value != null && value != "" && owned != null && owned != "") {
         var equity = parseFloat(value);
 
         if (mortgage != null && mortgage != "") {
@@ -123,7 +185,7 @@ function New_Cust_App_CS_FC(type, name, linenum) {
     }
 
     calcEstateTotals();
-  } else if (name == "custpage_first_name" || name == "custpage_diligence_assignee" || name == "custpage_middle_initial" || name == "custpage_last_name" || name == "custpage_address" || name == "custpage_city" || name == "custpage_state" || name == "custpage_zip" || name == "custpage_phone" || name == "custpage_email" || name == "custpage_how_did_they_find_us") {
+  } else if (name == "custpage_first_name" || name == "custpage_diligence_assignee" || name == "custpage_middle_initial" || name == "custpage_last_name" || name == "custpage_address" || name == "custpage_city" || name == "custpage_state" || name == "custpage_zip" || name == "custpage_phone" || name == "custpage_email" || name == "custpage_how_did_they_find_us"||name == "custpage_alt_phone") {
     var customerId = nlapiGetFieldValue("custpage_customer_id");
 
     if (customerId == null || customerId == "") {
@@ -138,6 +200,7 @@ function New_Cust_App_CS_FC(type, name, linenum) {
         customer.setFieldValue("middlename", nlapiGetFieldValue("custpage_middle_initial"));
         customer.setFieldValue("lastname", lastName);
         customer.setFieldValue("phone", nlapiGetFieldValue("custpage_phone"));
+        customer.setFieldValue("custentity_alternate_phone_number", nlapiGetFieldValue("custpage_alt_phone"));
         customer.setFieldValue("email", nlapiGetFieldValue("custpage_email"));
         customer.setFieldValue("leadsource", nlapiGetFieldValue("custpage_how_did_they_find_us"));
         customer.setFieldValue("category", "1");
@@ -164,7 +227,7 @@ function New_Cust_App_CS_FC(type, name, linenum) {
         nlapiSetFieldValue("custpage_customer_id", customerId, false, true);
       }
     } else {
-      if (name == "custpage_first_name" || name == "custpage_diligence_assignee" || name == "custpage_middle_initial" || name == "custpage_last_name" || name == "custpage_phone" || name == "custpage_email" || name == "custpage_how_did_they_find_us") {
+      if (name == "custpage_first_name" || name == "custpage_diligence_assignee" || name == "custpage_middle_initial" || name == "custpage_last_name" || name == "custpage_phone" || name == "custpage_email" || name == "custpage_how_did_they_find_us"||name == "custpage_alt_phone") {
         switch (name) {
           case "custpage_first_name":
             nlapiSubmitField("customer", customerId, "firstname", nlapiGetFieldValue(name));
@@ -178,11 +241,14 @@ function New_Cust_App_CS_FC(type, name, linenum) {
             nlapiSubmitField("customer", customerId, "lastname", nlapiGetFieldValue(name));
             nlapiSetFieldValue("custpage_customer_id", customerId, false, true);
             break;
+             case "custpage_alt_phone":
+            nlapiSubmitField("customer", customerId, "custentity_alternate_phone_number", nlapiGetFieldValue(name));
+            nlapiSetFieldValue("custpage_customer_id", customerId, false, true);
+            break;
           case "custpage_diligence_assignee":
             nlapiSubmitField("customer", customerId, "custentity_diligence_assignee", nlapiGetFieldValue(name));
             nlapiSetFieldValue("custpage_customer_id", customerId, false, true);
-      
-                nlapiLogExecution("debug", "value of diligence",nlapiGetFieldValue('custpage_diligence_assignee'));
+            nlapiLogExecution("debug", "value of diligence",nlapiGetFieldValue('custpage_diligence_assignee'));
                       console.log("value of diligence: "+nlapiGetFieldValue(name));
         var todaydate=new Date();
         var date=nlapiDateToString(todaydate);
@@ -211,12 +277,33 @@ function New_Cust_App_CS_FC(type, name, linenum) {
         
         
             break;
+      
+      
           case "custpage_phone":
-            nlapiSubmitField("customer", customerId, "phone", nlapiGetFieldValue(name));
-      
-    
+      var phone_sl=nlapiGetFieldValue(name);
+      if(phone_sl==null ||phone_sl==''){
+       //console.log('phone_sl '+phone_sl+'_customerId '+customerId);
+       phone_sl='';
+       phone_sl=null;
+      }
+       
+           // nlapiSubmitField("customer", customerId, "phone", phone_sl);
+      try{
+         var record_cl = nlapiLoadRecord('customer', customerId)
+              record_cl.setFieldValue('phone', phone_sl, false, true);
+     var sl_id = nlapiSubmitRecord(record_cl, true,true);
+   
+       }catch(e){
+         console.log(e);
+       }
+      //var record_cl = nlapiLoadRecord('customer', customerId)
+              //record_cl.setFieldValue('phone', phone_sl, false, true);
+     //var sl_id = nlapiSubmitRecord(record_cl, true,true);
+     
+       // console.log('phone_sl '+phone_sl+'_customerId '+customerId+' sl_id'+sl_id);
       ///////// New Change to set marketing category vijay/////////////
-      
+      console.log('name'+name);
+            console.log('customer id'+customerId);
       if(nlapiGetFieldValue(name))
       {
         var filters = [];
@@ -228,10 +315,11 @@ function New_Cust_App_CS_FC(type, name, linenum) {
         if (exchangeResults && exchangeResults.length ==1) {
           
           var cStatus=exchangeResults[0].getValue("custrecord_case_status_status");
-          if(cStatus==9 || cStatus==10)
-            nlapiSubmitField("customer", customerId, "custentity_marketing_categories", 1);
-        }
-      }
+              if(cStatus==9 || cStatus==10){
+                nlapiSubmitField("customer", customerId, "custentity_marketing_categories", 1);
+              }
+            }
+          }
             break;
           case "custpage_email":
             nlapiSubmitField("customer", customerId, "email", nlapiGetFieldValue(name));
@@ -249,17 +337,18 @@ function New_Cust_App_CS_FC(type, name, linenum) {
         if (exchangeResults && exchangeResults.length ==1) {
           
           var cStatus=exchangeResults[0].getValue("custrecord_case_status_status");
-          if(cStatus==9 || cStatus==10)
-            nlapiSubmitField("customer", customerId, "custentity_marketing_categories", 1);
-        }
-      }
-            break;
-          case "custpage_how_did_they_find_us":
-            var campaignCategory = "";
-            if (nlapiGetFieldValue(name) != null && nlapiGetFieldValue(name) != "")
-              campaignCategory = nlapiLookupField("campaign", nlapiGetFieldValue(name), "category");
-            nlapiSubmitField("customer", customerId, ["campaigncategory", "leadsource"], [campaignCategory, nlapiGetFieldValue(name)]);
-            break;
+              if(cStatus==9 || cStatus==10){
+                nlapiSubmitField("customer", customerId, "custentity_marketing_categories", 1);}
+
+            }
+          }
+          break;
+        case "custpage_how_did_they_find_us":
+          var campaignCategory = "";
+          if (nlapiGetFieldValue(name) != null && nlapiGetFieldValue(name) != "")
+            campaignCategory = nlapiLookupField("campaign", nlapiGetFieldValue(name), "category");
+          nlapiSubmitField("customer", customerId, ["campaigncategory", "leadsource"], [campaignCategory, nlapiGetFieldValue(name)]);
+          break;
         }
       } else if (name == "custpage_address" || name == "custpage_city" || name == "custpage_state" || name == "custpage_zip") {
         var addressStreet = nlapiGetFieldValue("custpage_address");
@@ -514,13 +603,65 @@ function New_Cust_App_CS_FC(type, name, linenum) {
     } catch (err) {
       nlapiLogExecution("error", "Error Updating Case Status Notes", "Details: " + err.message);
     }
-  } else if (name == 'custpage_followup_type') {
+  }else if (name == "custpage_sales_rep") {
+    
+      var customerId = nlapiGetFieldValue("custpage_customer_id");
+        console.log('Enter'+name+'////////'+customerId+'//////'+nlapiGetFieldValue("custpage_sales_rep"));
+if(customerId){
+  var salesrep=nlapiGetFieldValue("custpage_sales_rep");
+  var customerId=nlapiSubmitField("customer", customerId, ["salesrep","custentity_sales_rep"], [salesrep,salesrep]);
+  //var customerId=nlapiSubmitField("customer", customerId, ["salesrep"], [salesrep]);
+          console.log('submit Enter'+customerId);
+
+}    
+    } 
+  else if (name == 'custpage_followup_type') {
     var customerId = nlapiGetFieldValue("custpage_customer_id");
     if (customerId != null && customerId != "") {
       nlapiSubmitField("customer", customerId, "custentity_follow_up_type", nlapiGetFieldValue(name));
     }
-
   }
+  else if (name == 'custpage_followup_completed'&&type=='custpage_followup_list') {
+    var completed = nlapiGetCurrentLineItemValue("custpage_followup_list", "custpage_followup_completed");
+    var followupId = nlapiGetCurrentLineItemValue("custpage_followup_list", "custpage_followup_id");
+      var curruser=nlapiGetContext().user;
+    if (followupId != null && followupId != "") {
+          var dateVal=nlapiDateToString(new Date(), 'datetimetz');
+      nlapiSubmitField("customrecord_customer_follow_up", followupId, ["custrecord_followup_completed","custrecord_complete_date","custrecord_followup_completedby"], [completed,dateVal,curruser]);
+          //nlapiSetCurrentLineItemDateTimeValue("custpage_followup_list", "custpage_followup_completed_date",dateVal);
+         nlapiSetCurrentLineItemValue("custpage_followup_list", "custpage_followup_completed_date",dateVal);
+         nlapiSetCurrentLineItemValue("custpage_followup_list", "custpage_followup_completedby",curruser);
+    }
+  }
+  else if(name == 'custpage_followup_completedby'&&type=='custpage_followup_list'){
+        var followupId = nlapiGetCurrentLineItemValue("custpage_followup_list", "custpage_followup_id");
+    var completedby = nlapiGetCurrentLineItemValue("custpage_followup_list", "custpage_followup_completedby");
+    if (followupId != null && followupId != "") {
+    nlapiSubmitField("customrecord_customer_follow_up", followupId, ["custrecord_followup_completedby"], [completedby]);}
+  }
+  else if(name=='custpage_diligence_blocked_account_letter')
+  {
+    //alert(nlapiGetFieldValue("custpage_diligence_blocked_account_letter"));
+    var customerId = nlapiGetFieldValue("custpage_customer_id");
+      var estate = nlapiGetFieldValue("custpage_estate");
+    if(customerId)
+    nlapiSubmitField("customer", customerId, "custentity_blocked_account_letter", nlapiGetFieldValue("custpage_diligence_blocked_account_letter"));
+    
+    else if(estate)
+    nlapiSubmitField("customer", estate, "custentity_blocked_account_letter", nlapiGetFieldValue("custpage_diligence_blocked_account_letter"));
+  }
+  else if(name=='custpage_problem_case')
+  {
+    //alert(nlapiGetFieldValue("custpage_diligence_blocked_account_letter"));
+    var customerId = nlapiGetFieldValue("custpage_customer_id");
+      var estate = nlapiGetFieldValue("custpage_estate");
+    if(customerId)
+    nlapiSubmitField("customer", customerId, "custentity_problem_case", nlapiGetFieldValue("custpage_problem_case"));
+    
+    else if(estate)
+    nlapiSubmitField("customer", estate, "custentity_problem_case", nlapiGetFieldValue("custpage_problem_case"));
+  }
+ 
 }
 
 function attachAssignment(invoiceId) {
@@ -685,6 +826,9 @@ function calcTotalLeins() {
 
 function New_Cust_App_CS_LI(type) {
   try {
+          var completed = nlapiGetCurrentLineItemValue(type, "custpage_followup_completed");
+if(completed=='T'){nlapiDisableLineItemField(type, "custpage_followup_completed", true);}else{nlapiDisableLineItemField(type, "custpage_followup_completed", false);}
+if(completed=='T'){nlapiDisableLineItemField(type, "custpage_followup_completedby", true);}else{nlapiDisableLineItemField(type, "custpage_followup_completedby", false);}      
     if (type != "custpage_other_assignments") return;
 
     var companyname = nlapiGetCurrentLineItemValue(type, "custpage_other_company");
@@ -1009,7 +1153,32 @@ function calculatePrice() {
   var priceLevel = nlapiGetFieldValue("custpage_price_level");
   var numMonths = nlapiGetFieldValue("custpage_months_remaining");
   var advance = parseFloat(nlapiGetFieldValue("custpage_desired_advance"));
+  if(priceLevel==5){                                                                       //LEVEL 5 Starting
+    var assignment_size=advance*2;
+      nlapiSetFieldValue("custpage_assignment_size", assignment_size, true, true);
+      nlapiSetFieldValue("custpage_early_rebate_1", 3,false,true);
+      nlapiSetFieldValue("custpage_early_rebate_2", 6, false, true);
+      nlapiSetFieldValue("custpage_early_rebate_3", 9, false, true);
+    var rebate_1_amt;
+    var rebate_2_amt;
+    var rebate_3_amt;
+    var amt1= ((advance*(1+0.25))<(advance+3000))?(advance+3000):(advance*(1+0.25));
+    var amt2=((advance*(1+0.50))<(advance+6000))?(advance+6000):(advance*(1+0.50));
+    var amt3=((advance*(1+0.75))<(advance+9000))?(advance+9000):(advance*(1+0.75));
+    var rebate_1_amt= (amt1>assignment_size)?assignment_size:amt1;
+    var rebate_2_amt=(amt2>assignment_size)?assignment_size:amt2;
+    var rebate_3_amt=(amt3>assignment_size)?assignment_size:amt3;
+      console.log('rebate_1_amt'+rebate_1_amt);
+     if(rebate_1_amt)
+      nlapiSetFieldValue("custpage_early_rebate_1_amt", rebate_1_amt, false, true);
+    if(rebate_2_amt)
+      nlapiSetFieldValue("custpage_early_rebate_2_amt", rebate_2_amt, false, true);
+    if(rebate_3_amt)
+      nlapiSetFieldValue("custpage_early_rebate_3_amt", rebate_3_amt, false, true);
 
+  
+
+  }else{                                          //Level 5 Ending
   if (priceLevel != null && priceLevel != "" && numMonths != null && numMonths != "" && advance != null && advance != "") {
     var priceStructure = nlapiLookupField("customrecord_price_option", priceLevel, ["custrecord_fee_minimum", "custrecord_fee_percent", "custrecord_fee_return"]);
 
@@ -1082,6 +1251,7 @@ function calculatePrice() {
     if (nlapiGetFieldValue("custpage_early_rebate_3") != null && nlapiGetFieldValue("custpage_early_rebate_3") != "")
       nlapiSetFieldValue("custpage_early_rebate_3_amt", Math.ceil(rebateOption3 / 100) * 100, true, true);
   }
+  }
 }
 
 function calculateMonths() {
@@ -1122,7 +1292,7 @@ function createQuote() {
   try {
     //alert("Preparing to create quote");
 
-          var filters = [];
+         var filters = [];
           filters.push(new nlobjSearchFilter("entity", null, "is", nlapiGetFieldValue("custpage_customer_id")));
           filters.push(new nlobjSearchFilter("mainline", null, "is", "T"));
           //filters.push(new nlobjSearchFilter("custbody_preferred_quote",null, "is", "T"));
@@ -1132,15 +1302,12 @@ function createQuote() {
           cols.push(new nlobjSearchColumn("custbody_preferred_quote"));
           var results = nlapiSearchRecord("estimate", null, filters, cols);
           if (results) {
-           var preferred=false;
             for (var x = 0; x < results.length; x++) {
+              var estimateId=results[x].id;
              if(results[x].getValue("custbody_preferred_quote")=='T'){
-               preferred=true;
+                         nlapiSubmitField("estimate",estimateId , "custbody_preferred_quote", 'F');
              }
          }
-          if(preferred==false){
-           alert('No quote is selected as preferred');
-           } 
         }
 
  
@@ -1155,7 +1322,7 @@ function createQuote() {
     var assignment = parseFloat(nlapiGetFieldValue("custpage_assignment_size"));
 
     var linecount=nlapiGetLineItemCount('custpage_prior_quotes');
-    if(linecount==0)
+    //if(linecount==0)
       quote.setFieldValue("custbody_preferred_quote", 'T');
     if (nlapiGetFieldValue("custpage_early_rebate_1_amt") != null && nlapiGetFieldValue("custpage_early_rebate_1_amt") != "")
       quote.setFieldValue("custbody_rebate_1_amount", assignment - parseFloat(nlapiGetFieldValue("custpage_early_rebate_1_amt")));
@@ -2059,6 +2226,22 @@ function DeleteCustomer(){
   }
 }
 
+function Customerreminder(){
+  var url = nlapiResolveURL("SUITELET", "customscript_sl_customer_reminders", "customdeploy_sl_customer_reminders");
+  url += "&customer=" + nlapiGetFieldValue("custpage_customer_id");
+  url += "&phone=" + nlapiGetFieldValue("custpage_phone");
+  url += "&emailId=" + nlapiGetFieldValue("custpage_email");
+
+  window.open(url, 'docUploadWin','dependent=yes,width=1500%,height=1500%');
+//'dependent=yes,width=500,height=300'
+}
+
+function Conversations(){
+  var url = nlapiResolveURL("SUITELET", "customscript_mmsdf_sl_conversations_ui", "customdeploy_mmsdf_sl_conversations_ui");
+  url += "&recordId=" + nlapiGetFieldValue("custpage_customer_id")+ "&recordType=customer&smsSender=1090342";
+  window.open(url, 'docUploadWin','dependent=yes,width=1500%,height=1500%');
+//'dependent=yes,width=500,height=300'
+}
 
 function DeleteEstate(){
   try{

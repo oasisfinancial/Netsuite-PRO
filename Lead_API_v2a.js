@@ -12,7 +12,7 @@ function Lead_API(datain)
 
 		//Lookup marketing campaign if provided
 		var campaign = "";
-		
+		var customerId;
 		if(datain.adgroup!=null && datain.adgroup!="")
 		{
 			var filters = [];
@@ -31,8 +31,9 @@ function Lead_API(datain)
 		estate.setFieldValue("isperson","F");
 		estate.setFieldValue("companyname","[TEMP] " + datain.firstname + " " + datain.lastname);
 		estate.setFieldValue("category","2");
+        estate.setFieldValue("custentity_source",'web services');
 		estateId = nlapiSubmitRecord(estate,true,true);
-		nlapiLogExecution("debug","Created estate record...");
+		nlapiLogExecution("debug","Created estate record...",estateId);
 		
 		var customer = nlapiCreateRecord("customer",{recordmode:"dynamic"});
 		customer.setFieldValue("subsidiary","2");
@@ -52,14 +53,21 @@ function Lead_API(datain)
 		customer.setFieldValue("custentity_matchtype",formatNull(datain.matchtype));
 		customer.setFieldValue("leadsource",campaign);
 		customer.setFieldValue("parent",estateId);
-		customerId = nlapiSubmitRecord(customer,true,true);
-		nlapiLogExecution("debug","Created customer record...");
-		
+      	customer.setFieldValue("custentity_source",'web services');
+      try {
+         customerId = nlapiSubmitRecord(customer,true,true);
+		nlapiLogExecution("debug","Created customer record...",customerId);
+      } catch (err) {
+        nlapiLogExecution("error","Error Creating Customer","Details: " + err.message);
+      }
+	if(customerId){
 		var caseStatusRec = nlapiCreateRecord("customrecord_case_status");
 		caseStatusRec.setFieldValue("custrecord_case_status_status","1"); //Prospective
 		caseStatusRec.setFieldValue("custrecord_case_status_customer",customerId);
 		caseStatusRec.setFieldValue("custrecord_case_status_notes",formatNull(datain.about_case));
 		var caseStatusRecId = nlapiSubmitRecord(caseStatusRec,true,true);
+      nlapiLogExecution("debug",'caseStatusRecId',caseStatusRecId);
+      }
 	}
 	catch(err)
 	{
@@ -90,7 +98,8 @@ function send_email(data){
 		var emailSubject = nlapiGetContext().getSetting('SCRIPT', 'custscript_lead_email_subject01');
 		var customerEmail = data.email;
 		var DefaultSenderText = 'Probate Advance';
-		var empEmail = 'referral@probateadvance.com';
+	//	var empEmail = 'referral@probateadvance.com';
+    	var empEmail = 'newapplication@probateadvance.com';
 		var senderId;
 		var emailBody=nlapiLoadFile(emailBodyFile).getValue();
 		emailBody=emailBody.replace('{firstName}',data.firstname);

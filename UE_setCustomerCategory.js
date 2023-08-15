@@ -16,7 +16,7 @@
 
 define(['N/search', 'N/record', 'N/runtime'],
 
-  function(search, record, runtime) {
+  function (search, record, runtime) {
 
     /**
      * Function definition to be triggered before submit.
@@ -58,20 +58,19 @@ define(['N/search', 'N/record', 'N/runtime'],
 
         //If the Latest Status is Pending Assignment, Assignment Sent and Funded
         //Then set the Marketing Category to “Approved”
-        
-        if(latestatus=='1')
-         {
-              record.submitFields({
-              type: 'customer',
-              id: customerid,
-              values: {
-                'custentity_marketing_categories': 1
-              }
-            });
-          }
+        //
+        if (latestatus == '1') {
+          record.submitFields({
+            type: 'customer',
+            id: customerid,
+            values: {
+              'custentity_marketing_categories': 1
+            }
+          });
+        }
 
+        // else if (latestatus == '6' || latestatus == '7' || latestatus == '8'|| latestatus == '12'){
         else if (latestatus == '6' || latestatus == '7' || latestatus == '8') {
-
           record.submitFields({
             type: 'customer',
             id: customerid,
@@ -89,7 +88,8 @@ define(['N/search', 'N/record', 'N/runtime'],
 
         //If the Latest Status is Pending Approval or Pending Additional Information
         //Then set the Marketing Category is “Submitted to Diligence”
-        else if (latestatus == '4' || latestatus == '5') {
+        // else if (latestatus == '4' || latestatus == '5') {
+        else if (latestatus == '5') {
           record.submitFields({
             type: 'customer',
             id: customerid,
@@ -121,6 +121,45 @@ define(['N/search', 'N/record', 'N/runtime'],
           });
         }
 
+        else if (latestatus == '9' || latestatus == '10') {
+          var customerLookUp = search.lookupFields({
+            type: search.Type.CUSTOMER,
+            id: customerid,
+            columns: ['email', 'phone']
+          });
+
+          var email = customerLookUp.email;
+          var phonenumber = customerLookUp.phone;
+          if (email || phonenumber) {
+            var customrecord_SearchObj = search.create({
+              type: "customrecord_case_status",
+              filters: [
+                ["custrecord_case_status_customer", "anyof", customerid]
+              ],
+              columns: [search.createColumn({
+                name: "custrecord_case_status_status",
+                label: "Status"
+              })]
+            });
+
+            var resultsObj = customrecord_SearchObj.run();
+            var exchangeResults = resultsObj.getRange({
+              start: 0,
+              end: 100
+            });
+            var custid;
+            if (exchangeResults && exchangeResults.length <= 1) {
+              record.submitFields({
+                type: 'customer',
+                id: customerid,
+                values: {
+                  'custentity_marketing_categories': 1
+                }
+              });
+            }
+          }
+        }
+
         //If the Latest Status is Pending Assignment, Assignment Sent and Funded
         //Then set the Marketing Category to “Approved”
         else {
@@ -134,8 +173,8 @@ define(['N/search', 'N/record', 'N/runtime'],
           var email = customerLookUp.email;
           var phonenumber = customerLookUp.phone;
 
-          log.debug('customerid','email--'+email);
-          log.debug('phonenumber','phonenumber--'+phonenumber);
+          log.debug('customerid', 'email--' + email);
+          log.debug('phonenumber', 'phonenumber--' + phonenumber);
 
           if (email && phonenumber) {
 
@@ -162,12 +201,12 @@ define(['N/search', 'N/record', 'N/runtime'],
                   value: true
                 }); */
 
-                  log.debug('phonenumber','Duplicate found--');
+              log.debug('phonenumber', 'Duplicate found--');
 
             }
 
-          }else{
-            log.debug('phonenumber','NO EMAIL AND PHONE FOUDN--');
+          } else {
+            log.debug('phonenumber', 'NO EMAIL AND PHONE FOUDN--');
           }
 
         }
@@ -184,7 +223,7 @@ define(['N/search', 'N/record', 'N/runtime'],
         var customerSearchObj = search.create({
           type: 'customer',
           filters: [
-            ["phone", "is", phonenumber],"AND",
+            ["phone", "is", phonenumber], "AND",
             ["email", "is", email]
           ],
           columns: ['internalid']

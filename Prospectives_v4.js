@@ -1,5 +1,6 @@
 function Prospectives(request,response)
 {
+  try{
 	var today = new Date();
 	var daysAgo30 = nlapiAddDays(today,-30);
 	nlapiLogExecution("debug","30 days ago",daysAgo30);
@@ -22,6 +23,7 @@ function Prospectives(request,response)
 	fld = list.addField("custpage_county","select","County","customrecord173");
 	fld = list.addField("custpage_phone","phone","Phone");
 	fld = list.addField("custpage_email","email","Email");
+    fld = list.addField("custpage_sales_rep","select","Sales Rep","employee");
 	fld = list.addField("custpage_last_update","text","Last Update");
 	fld.setDisplayType("disabled");
 	fld = list.addField("custpage_last_update_by","text","Updated By");
@@ -32,7 +34,10 @@ function Prospectives(request,response)
 	fld = list.addField("custpage_notes","textarea","Notes");
 	fld.setDisplayType("entry");
 	fld.setDisplaySize(25,2);
-	
+	//fld = list.addField("custpage_flg","checkbox","flg");
+    //fld.setDisplayType("disabled");
+    //fld = list.addField("custpage_flg1","text","flg1");
+    //fld.setDisplayType("hidden");
 	var customerIds = [];
 	
 	var statuses = [];
@@ -103,7 +108,7 @@ function Prospectives(request,response)
 		
 	}while(results.length >= 1000);
 	
-	//nlapiLogExecution("debug","Status JSON",JSON.stringify(statuses));
+	//nlapiLogExecution("debug","Status JSON",customerIds.length);
 	
 	if(customerIds!=null && customerIds.length > 0)
 	{
@@ -121,21 +126,29 @@ function Prospectives(request,response)
 		cols.push(new nlobjSearchColumn("leadsource"));
 		cols.push(new nlobjSearchColumn("phone"));
 		cols.push(new nlobjSearchColumn("email"));
+        cols.push(new nlobjSearchColumn("custentity_sales_rep"));
 		cols.push(new nlobjSearchColumn("firstname","parentcustomer"));
 		cols.push(new nlobjSearchColumn("lastname","parentcustomer"));
 		cols.push(new nlobjSearchColumn("custentity2","parentcustomer"));
 		cols.push(new nlobjSearchColumn("firstname","parentcustomer"));
-		
+      //  cols.push(new nlobjSearchColumn("datecreated"));
+      //  cols.push(new nlobjSearchColumn("lastmodifieddate"));
+      //cols.push(new nlobjSearchColumn("formuladate").setFormula("{datecreated}"))
+      //cols.push(new nlobjSearchColumn("formuladate").setFormula("{lastmodifieddate}"))
+      //cols.push(new nlobjSearchColumn("formulatext").setFormula("Case when {datecreated}={lastmodifieddate} then 'T' else 'F' end").setSort(true))
+
+
+
 		var search = nlapiCreateSearch("customer",filters,cols);
 		var searchId = 0;
 		var resultSet = search.runSearch();
 		
 		do{
 			var results = resultSet.getResults(searchId,searchId+1000);
-			
+		//		nlapiLogExecution("debug","# Customers",results.length);
+
 			if(results)
 			{
-				nlapiLogExecution("debug","# Customers",results.length);
 				
 				for(var x=0; x < results.length; x++)
 				{
@@ -145,7 +158,8 @@ function Prospectives(request,response)
 					var lineLink = customerUrl + "&customer=" + customerId + "&estate=" + estateId;
 					
 					var status = "", statusInternalId = "", notes = "", modified = "", modified_by = "";
-					
+			//		var createdDate= results[x].getValue(cols[14]);
+            //        var lastmodifieddate= results[x].getValue(cols[15]);
 					for(var i=0; i < statuses.length; i++)
 					{
 						if(statuses[i].customer == customerId)
@@ -158,7 +172,11 @@ function Prospectives(request,response)
 							break;
 						}
 					}
-					
+              //    var flg="F";
+              //    var flg1=2;
+              //    if(createdDate==lastmodifieddate){flg="T";flg1=1}
+              //  nlapiLogExecution("debug","# lastmodifieddate",lastmodifieddate+'/////////'+createdDate);
+
 					data.push({
 						custpage_customer_internalid : customerId,
 						//custpage_customer_link : "<a href='" + lineLink + "' target='_blank'>App</a>",
@@ -171,11 +189,15 @@ function Prospectives(request,response)
 						custpage_marketing_channel : results[x].getValue("leadsource"),
 						custpage_county : results[x].getValue("custentity2","parentcustomer"),
 						custpage_notes : notes,
+                      custpage_sales_rep: results[x].getValue("custentity_sales_rep") ,
 						custpage_case_status : status,
 						custpage_case_status_internalid : statusInternalId,
 						custpage_last_update : modified,
 						custpage_last_update_obj : nlapiStringToDate(modified),
 						custpage_last_update_by : modified_by
+                      //custpage_flg:flg,
+                      //custpage_flg1:flg1
+                      
 					});
 				
 				searchId++;
@@ -183,7 +205,8 @@ function Prospectives(request,response)
 				}
 			}
 		}while(results.length >= 1000);
-		
+		//data.sort( compare );
+
 		if(data.length > 0)
 		{
 			data.sort(function(a,b){
@@ -204,6 +227,18 @@ function Prospectives(request,response)
 		
 		list.setLineItemValues(cleanData);
 	}
-	
+  }catch(e){
+    	//			nlapiLogExecution("error","# Customers",e);
+
+  }
 	response.writePage(form);
 }
+/*function compare( a, b ) {
+  if ( a.custpage_flg1 < b.custpage_flg1 ){
+    return -1;
+  }
+  if ( a.custpage_flg1 > b.custpage_flg1 ){
+    return 1;
+  }
+  return 0;
+}*/
