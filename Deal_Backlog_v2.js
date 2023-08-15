@@ -34,7 +34,8 @@ function Deal_Backlog(request,response)
 	fld = list.addField("custpage_notes","textarea","Notes");
 	fld.setDisplayType("entry");
 	fld.setDisplaySize(25,2);
-	list.addField("custpage_sales_person","select","Sales Person","employee");
+	fld = list.addField("custpage_sales_person","select","Sales Person","employee");
+	fld.setDisplayType("inline");
 
 	nlapiLogExecution("debug","Usage after form objects",context.getRemainingUsage());
 
@@ -109,7 +110,7 @@ function Deal_Backlog(request,response)
 		cols.push(new nlobjSearchColumn("custbody_option_3_pricing"));
 		cols.push(new nlobjSearchColumn("custbody_advance_size"));
 		cols.push(new nlobjSearchColumn("custbody_assignment_size"));
-		cols.push(new nlobjSearchColumn("salesrep"));
+		cols.push(new nlobjSearchColumn("custentity_sales_rep","customer"));
 		cols.push(new nlobjSearchColumn("entity"));
 		cols.push(new nlobjSearchColumn("custbody_county"));
 		cols.push(new nlobjSearchColumn("custbody_state_of_case"));
@@ -165,7 +166,7 @@ function Deal_Backlog(request,response)
 					//custpage_option_2 : results[x].getValue("custbody_option_2_pricing"),
 					//custpage_option_3 : results[x].getValue("custbody_option_3_pricing"),
 					//custpage_assignment : results[x].getValue("custbody_assignment_size"),
-					custpage_sales_person : results[x].getValue("salesrep"),
+					custpage_sales_person : results[x].getValue("custentity_sales_rep","customer"),
 					custpage_case_status : status,
 					custpage_case_status_internalid : statusInternalId,
 					custpage_last_update : modified
@@ -187,7 +188,7 @@ function Deal_Backlog(request,response)
 		cols.push(new nlobjSearchColumn("lastname"));
 		cols.push(new nlobjSearchColumn("custentity_last_notes_from_cust_contact"));
 		cols.push(new nlobjSearchColumn("leadsource"));
-		cols.push(new nlobjSearchColumn("salesrep"));
+		cols.push(new nlobjSearchColumn("custentity_sales_rep"));
 		cols.push(new nlobjSearchColumn("custentity_diligence_assignee"));
 		var results = nlapiSearchRecord("customer",null,filters,cols);
 		if(results)
@@ -232,7 +233,7 @@ function Deal_Backlog(request,response)
 					//custpage_option_2 : "",
 					//custpage_option_3 : "",
 					//custpage_assignment : "",
-					custpage_sales_person : results[x].getValue("salesrep"),
+					custpage_sales_person : results[x].getValue("custentity_sales_rep"),
 					custpage_case_status : status,
 					custpage_case_status_internalid : statusInternalId,
 					custpage_last_update : modified

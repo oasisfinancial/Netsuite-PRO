@@ -16,7 +16,8 @@
                 var emailSubject = scriptObj.getParameter({name:'custscript_lead_email_subject'});
                 var customerEmail = datain.email;
                 var DefaultSenderText = 'Probate Advance'
-                var empEmail = 'referral@probateadvance.com';
+                //var empEmail = 'referral@probateadvance.com';
+                var empEmail='newapplication@probateadvance.com';
                 var senderId;
                 var emailBody=file.load({
                     id:emailBodyFile

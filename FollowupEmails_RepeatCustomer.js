@@ -77,7 +77,7 @@ var searchResultCount = customerSearchObj.runPaged().count;
                     var diffTime = Math.abs(today - date1);
                     var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
 					
-					if(day == 0 || diffDays == 30)
+					if(day == 1 || diffDays == 30)
 					{
 					   
 	                   emailBody=file.load({
@@ -145,6 +145,7 @@ var searchObj = search.create({
          label: "ID"
       }),
       search.createColumn({name: "altname", label: "Name"}),
+     	  search.createColumn({name: "internalid", label: "Internaid"}),
       search.createColumn({name: "custentity_follow_up_type", label: "Follow Up Type"}),
       search.createColumn({
          name: "formulatext",
@@ -174,7 +175,7 @@ var searchResult = searchObj.runPaged().count;
 					var customer_email=searchResults[r].getValue({name: "email", label: "Email"});
 					var followup_type=searchResults[r].getValue({name: "custentity_follow_up_type", label: "Follow Up Type"});
 					var day=searchResults[r].getValue({name: "formulatext",formula: "TRUNC({today}-TO_DATE({systemnotes.date}))"});
-					
+					log.debug('day',day);
 				if(day == 0)
                   {
 	                  

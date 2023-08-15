@@ -136,3 +136,65 @@ function Deal_Backlog_CS_FC(type,name,linenum)
 		}
    }
 }
+
+function onDownload(){
+	var lineCount = nlapiGetLineItemCount("custpage_deals");
+    if (lineCount > 0) {
+    	var xmlString = 'Decedent Name,Total Assignment,Est Date of Distr,LIST OF INVOICES,COUNTY,LAST PHONE CALL DATE,SUBJECT,MESSAGE,NEXT EVENT DATE,SUBJECT,ESTATE STATUS,Dot,ESCROW,BLOCKED ACCOUNT LETTER,PROBLEM CASE\n'; 
+    	var content=[];
+	    for (var line = 1; line <= lineCount; line++) {
+          var invoice_list=nlapiGetLineItemValue("custpage_deals", "custpage_invoice_list_text", line);
+          const strCopy = invoice_list.split(',');
+          for (var index = 0; index < strCopy.length; index++) {
+          var row = [];
+		    	row = [
+		    	           	nlapiGetLineItemValue("custpage_deals", "custpage_decedent_name_text", line),
+		    	           	nlapiGetLineItemValue("custpage_deals", "custpage_total_assignment", line), 
+		    	           	nlapiGetLineItemValue("custpage_deals", "custpage_est_date_of_distr", line),
+			           		strCopy[index],
+			           		nlapiGetLineItemValue("custpage_deals", "custpage_county", line),
+			           		nlapiGetLineItemValue("custpage_deals", "custpage_last_phone_date", line),
+			           		nlapiGetLineItemValue("custpage_deals", "custpage_last_phone_subject", line),
+			           		nlapiGetLineItemValue("custpage_deals", "custpage_last_phone_message", line),
+			           		nlapiGetLineItemValue("custpage_deals", "custpage_next_event_date", line),
+			           		nlapiGetLineItemValue("custpage_deals", "custpage_next_event_subject", line),
+			           		nlapiGetLineItemValue("custpage_deals", "custpage_estate_status_part", line),
+			           		nlapiGetLineItemValue("custpage_deals", "custpage_dot", line),
+			                nlapiGetLineItemValue("custpage_deals", "custpage_escrow", line),
+			           	    nlapiGetLineItemValue("custpage_deals", "custpage_blocked_account", line),
+			           	    nlapiGetLineItemValue("custpage_deals", "custpage_problem_case", line)
+			          
+	           		]; 
+       	content.push(row);
+          }
+
+	    	/*row = row.map(function(field) {
+	    			return "'" + field + "'";
+    			});*/
+    		//xmlString = xmlString + row.join() + '\n';
+	    }
+    }
+ var  finalVal='';
+  for (var i = 0; i < content.length; i++) {
+    var value = content[i];
+    for (var j = 0; j < value.length; j++) {
+        var innerValue =  value[j]===null?'':value[j].toString();
+        var result = innerValue.replace(/"/g, '""');
+        if (result.search(/("|,|\n)/g) >= 0)
+            result = '"' + result + '"';
+        if (j > 0)
+            finalVal += ',';
+        finalVal += result;
+    }
+
+    finalVal += '\n';
+}
+  xmlString+=finalVal;
+	var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(xmlString));
+    element.setAttribute('download', "Diligence List Report.csv");
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}

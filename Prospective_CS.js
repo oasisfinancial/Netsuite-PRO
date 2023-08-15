@@ -17,7 +17,7 @@ function Prospective_CS_FC(type,name,linenum)
 			console.log("Error - " + err.message);
 		}
 	}
-	else if(type=="custpage_deals" && (name=="custpage_customer_first_name" || name=="custpage_customer_last_name" || name=="custpage_phone" || name=="custpage_email"))
+	else if(type=="custpage_deals" && (name=="custpage_customer_first_name" || name=="custpage_customer_last_name" || name=="custpage_phone" || name=="custpage_email"||name=="custpage_sales_rep"))
 	{
 		try
 		{
@@ -38,6 +38,9 @@ function Prospective_CS_FC(type,name,linenum)
 					break;
 				case "custpage_email":
 					fieldToUpdate = "email";
+					break;
+                case "custpage_sales_rep":
+					fieldToUpdate = "custentity_sales_rep";
 					break;
 			}
 			

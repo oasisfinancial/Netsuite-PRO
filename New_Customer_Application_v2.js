@@ -126,6 +126,7 @@ function New_Customer_Application(request, response) {
         //Additional subtabs
         form.addTab("communication", "Communication");
         form.addSubTab("phonecalls", "Phone Calls", "communication");
+        form.addSubTab( "message", "Messages", "communication" );
         form.addSubTab("tasks", "Tasks", "communication");
         form.addSubTab("events", "Events", "communication");
         form.addSubTab("usernotes", "User Notes", "communication");
@@ -136,7 +137,16 @@ function New_Customer_Application(request, response) {
         //form.addTab("documents","Documents");
         form.addTab("marketing", "Marketing");
         form.addTab("invoices", "Invoices");
+  form.addTab("followup", "Follow Up");
   
+            //23-12-2022
+            form.addTab( "custom_tab", "Custom" );
+            fld = form.addField( "custpage_wa_name", "checkbox", "OPT-IN WORKFLOW SMS", null, 'custom_tab' );
+            if ( customer != null )
+               fld.setDefaultValue( customer.getFieldValue( "custentity_mmsdf_send_wf_sms" ) )
+            fld = form.addField( "custpage_wa_state_name", "checkbox", "OPT-OUT SMS", null, 'custom_tab' );
+            if ( customer != null )
+               fld.setDefaultValue( customer.getFieldValue( "custentity_mmsdf_stopsendingsms" ) )
         fld = form.addField("custpage_customer_id", "select", "Customer (Existing)", "customer", "customer");
         fld.setLayoutType("normal", "startcol");
         if (customerId != null && customerId != "")
@@ -150,7 +160,7 @@ function New_Customer_Application(request, response) {
         fld = form.addField("custpage_last_name", "text", "Last Name", null, "customer");
         if (customer != null)
           fld.setDefaultValue(customer.getFieldValue("lastname"));
-        
+  
         fld = form.addField("custpage_address", "text", "Address", null, "customer");
         fld.setLayoutType("normal", "startcol");
         if (customer != null)
@@ -164,19 +174,26 @@ function New_Customer_Application(request, response) {
         fld = form.addField("custpage_zip", "text", "Zip", null, "customer");
         if (customer != null)
           fld.setDefaultValue(customer.getFieldValue("billzip"));
+           fld = form.addField("custpage_sales_rep","select","Sales Rep","employee","customer");
   
+                  if (customer != null)
+          fld.setDefaultValue(customer.getFieldValue("custentity_sales_rep"));
         fld = form.addField("custpage_phone", "phone", "Phone Number", null, "customer");
         fld.setLayoutType("normal", "startcol");
         if (customer != null)
           fld.setDefaultValue(customer.getFieldValue("phone"));
+        fld = form.addField("custpage_alt_phone", "phone", "Alternate Phone Number", null, "customer");
+        if (customer != null)
+          fld.setDefaultValue(customer.getFieldValue("custentity_alternate_phone_number"));
+
         fld = form.addField("custpage_email", "email", "Email", null, "customer");
         if (customer != null)
           fld.setDefaultValue(customer.getFieldValue("email"));
         fld = form.addField("custpage_how_did_they_find_us", "select", "How Did They Find Us", "campaign", "customer");
         if (customer != null)
           fld.setDefaultValue(customer.getFieldValue("leadsource"));
-  
-  
+
+
         //Adding Active Field ....
         if (customer != null) {
           var custActive = form.addField("custpage_cust_isactive", "checkbox", "CUST:InActive", "customer");
@@ -185,11 +202,11 @@ function New_Customer_Application(request, response) {
           //End of Adding Active Field ....
           nlapiLogExecution("debug", "customer ID", "customer 3");
         }
-  
+
         var latestStatus = null;
         var latestStatusId = null;
         var latestStatusNotes = null;
-  
+
         if (customerId != null) {
           var filters = [];
           filters.push(new nlobjSearchFilter("custrecord_case_status_customer", null, "is", customerId));
@@ -204,33 +221,33 @@ function New_Customer_Application(request, response) {
             latestStatusNotes = results[0].getValue("custrecord_case_status_notes");
           }
         }
-  
+
         fld = form.addField("custpage_latest_status_id", "select", "Latest Status Record", "customrecord_case_status", "customer");
         fld.setDisplayType("hidden");
         if (latestStatusId != null)
           fld.setDefaultValue(latestStatusId);
-  
+
         fld = form.addField("custpage_latest_status", "select", "Latest Status", "customlist_case_statuses", "customer");
         //fld.setDisplayType("inline");
         if (latestStatus != null)
           fld.setDefaultValue(latestStatus);
         nlapiLogExecution("debug", "Estate ID", "check3");
-  
+
         fld = form.addField("custpage_notes", "textarea", "Notes from Customer Contact", null, "customer");
         fld.setLayoutType("normal", "startcol");
         nlapiLogExecution("debug", "Estate ID", "check2");
         fld.setDisplaySize("70", "6");
-  
+
         fld = form.addField("custpage_followup_type", "select", "Followup Type", "customlist_follow_up_type", "customer");
         nlapiLogExecution("DEBUG", "customerId", customer);
         if (customer != null)
           fld.setDefaultValue(customer.getFieldValue("custentity_follow_up_type"));
-  
+
         fld = form.addField("custpage_latest_status_notes", "textarea", "Latest Status Notes", null, "customer");
         //fld.setDisplayType("inline");
         if (latestStatusNotes != null)
           fld.setDefaultValue(latestStatusNotes);
-  
+
         fld = form.addField("custpage_estate", "select", "Decedent Name (Existing)", "customer", "estate");
         fld.setLayoutType("normal", "startcol");
         if (estateId != null && estateId != "")
@@ -247,26 +264,26 @@ function New_Customer_Application(request, response) {
         fld = form.addField("custpage_estate_county", "select", "County", "customrecord173", "estate");
         if (estate != null)
           fld.setDefaultValue(estate.getFieldValue("custentity2"));
-  
+
         fld = form.addField("custpage_estate_est_date_distr", "date", "Estimated Date of Distribution", null, "estate");
         if (estate != null)
           fld.setDefaultValue(estate.getFieldValue("custentity_est_date_of_distribution"));
-  
+
         fld = form.addField("custpage_estate_filing_date", "date", "Filing Date", null, "estate");
         if (estate != null)
           fld.setDefaultValue(estate.getFieldValue("custentity_filing_date"));
-  
+
         var nextEventFld = form.addField("custpage_estate_next_event", "text", "Next Event", null, "estate");
         nextEventFld.setDisplayType("inline");
-  
+
         var nextCallFld = form.addField("custpage_estate_next_phonecall", "text", "Last Phone Call", null, "estate");
         nextCallFld.setDisplayType("inline");
-        
-         fld = form.addField("custpage_est_status", "select", "Estate Status", "customlist_open_list", "estate");
+
+        fld = form.addField("custpage_est_status", "select", "Estate Status", "customlist_open_list", "estate");
         nlapiLogExecution("DEBUG", "estateId", estate);
         if (estate != null)
-         fld.setDefaultValue(estate.getFieldValue("custentity_est_status"));
-  
+          fld.setDefaultValue(estate.getFieldValue("custentity_est_status"));
+
         //Adding Active Field ....
         if (estate != null) {
           var customerActive = form.addField("custpage_est_isactive", "checkbox", "EST:InActive", "estate");
@@ -276,7 +293,7 @@ function New_Customer_Application(request, response) {
           nlapiLogExecution("debug", "Estate ID", "check4");
         }
         var attorneyFlds = null;
-  
+
         if (estateId != null && estateId != "") {
           var filters = [];
           filters.push(new nlobjSearchFilter("company", null, "is", estateId));
@@ -295,7 +312,7 @@ function New_Customer_Application(request, response) {
             attorneyFlds = results[0];
           }
         }
-  
+
         fld = form.addField("custpage_attorney_name", "text", "Attorney Name", null, "estate");
         fld.setLayoutType("normal", "startcol");
         if (attorneyFlds != null)
@@ -324,11 +341,11 @@ function New_Customer_Application(request, response) {
         fld = form.addField("custpage_attorney_id", "select", "Attorney Contact ID", "contact", "estate");
         if (attorneyFlds != null)
           fld.setDefaultValue(attorneyFlds.getId());
-  
+
         nlapiLogExecution("debug", "Added Attorney");
-  
+
         var personalRepFlds = null;
-  
+
         if (estateId != null && estateId != "") {
           var filters = [];
           filters.push(new nlobjSearchFilter("company", null, "is", estateId));
@@ -346,7 +363,7 @@ function New_Customer_Application(request, response) {
             personalRepFlds = results[0];
           }
         }
-  
+
         fld = form.addField("custpage_personal_rep_1", "text", "Personal Representative 1", null, "estate");
         fld.setLayoutType("normal", "startcol");
         if (personalRepFlds != null)
@@ -373,11 +390,33 @@ function New_Customer_Application(request, response) {
         if (personalRepFlds != null)
           fld.setDefaultValue(personalRepFlds.getId());
         fld = form.addField("custpage_diligence_assignee", "select", "Diligence Assignee", "employee", "estate");
-        if (customer.getFieldValue("custentity_diligence_assignee") != null)
-           fld.setDefaultValue(customer.getFieldValue("custentity_diligence_assignee"));
-  
+        if (customer != null) {
+          if (customer.getFieldValue("custentity_diligence_assignee") != null)
+            fld.setDefaultValue(customer.getFieldValue("custentity_diligence_assignee"));
+        }
         nlapiLogExecution("debug", "Added Personal Rep");
-  
+                var dotField = form.addField("custpage_diligence_dot", "checkbox", "DOT", null, "estate");  
+                dotField.setDisplayType("disabled");             ////// Change
+                var escrowField = form.addField("custpage_diligence_escrow", "checkbox", "ESCROW", null, "estate");
+                escrowField.setDisplayType("disabled");            ////// Change
+                var accountField = form.addField("custpage_diligence_blocked_account_letter", "checkbox", "Blocked Account Letter", null, "estate");
+              if(customer)
+        accountField.setDefaultValue(customer.getFieldValue("custentity_blocked_account_letter"));
+              else if(estateId)
+                {
+                var estRecord=nlapiLoadRecord('customer',estateId);
+                accountField.setDefaultValue(estRecord.getFieldValue("custentity_blocked_account_letter"));
+                }
+                var accountField = form.addField("custpage_problem_case", "checkbox", "Problem Case", null, "estate");
+              if(customer)
+                accountField.setDefaultValue(customer.getFieldValue("custentity_problem_case"));
+              else if(estateId)
+                {
+                var estRecord=nlapiLoadRecord('customer',estateId);
+                accountField.setDefaultValue(estRecord.getFieldValue("custentity_problem_case"));
+                }
+                //escrowField.setDisplayType("disabled");            ////// Change
+
         fld = form.addField("custpage_total_property", "integer", "Total Value of Real Property", null, "financials");
         fld.setDisplayType("inline");
         fld.setDefaultValue(0.00);
@@ -401,19 +440,66 @@ function New_Customer_Application(request, response) {
         fld = form.addField("custpage_net_equity_value_1", "integer", "Net Equity Value of Estate", null, "financials");
         fld.setDisplayType("inline");
         fld.setDefaultValue(0.00);
-  
-        var properties = form.addSubList("custpage_properties", "inlineeditor", "Real Properties", "financials");
-        properties.addField("custpage_property_address", "text", "Property");
+
+        var properties = form.addSubList("custpage_properties", "inlineeditor", "Real Properties", "financials");//inlineeditor//list
+         fld=   properties.addField("custpage_property_address", "textarea", "Property");
+         fld.setDisplayType("entry");
+         fld.setDisplaySize("200", "6");
+        fld =properties.addField("custpage_property_eventtype", "select", "Listing Status","customlist_listing_status");
+                //fld.setDisplayType("entry");
         fld = properties.addField("custpage_property_value", "integer", "Value");
         fld.setMandatory(true);
-        properties.addField("custpage_property_mortgage", "integer", "Mortgage");
+        fld.setDisplayType("entry");
+        fld=properties.addField("custpage_property_mortgage", "integer", "Mortgage");
+        fld.setDisplayType("entry");
         fld = properties.addField("custpage_property_owned", "percent", "% Owned");
         fld.setDefaultValue("100%");
+        fld.setDisplayType("entry");
         fld = properties.addField("custpage_property_total", "integer", "Total");
-        fld.setDisplayType("disabled");
+        fld.setDisplayType("entry");
+        fld =properties.addField("custpage_property_sold", "checkbox", "Sold?");
+                fld = properties.addField("custpage_property_escrow", "checkbox", "Escrow");
+                fld = properties.addField("custpage_property_dot", "select", "DOT","customlist_dot_list");
+        fld =properties.addField("custpage_property_note", "textarea", "Note");
+        fld.setDisplayType("entry");
+        fld =properties.addField("custpage_property_estamount", "integer", "ESTIMATED Value");
+                fld.setDisplayType("disabled");
+                fld = properties.addField("custpage_property_preforeclosure_status", "select", "Preforeclosure Status","customlist_preforeclosure_status");
+                fld.setDisplayType("entry");
+                fld = properties.addField("custpage_property_owner_name", "text", "Owner Name");
+                fld.setDisplayType("disabled");
+        fld =properties.addField("custpage_property_est_mortage_amt_attom", "currency", "EST MORTGAGE");
+                fld.setDisplayType("hidden");
         fld = properties.addField("custpage_property_id", "select", "Property ID", "customrecord_property");
         fld.setDisplayType("hidden");
-  
+        fld =properties.addField("custpage_property_auction_date", "text", "Auction Date");
+                fld.setDisplayType("hidden");
+        fld =properties.addField("custpage_property_salesamount", "currency", "Last Sales Amt");
+                fld.setDisplayType("hidden");
+        fld =properties.addField("custpage_property_lastsalesdate", "text", "LAST SALE DATE");
+                fld.setDisplayType("hidden");
+        fld =properties.addField("custpage_property_property_type", "text", "Property Type");
+                fld.setDisplayType("hidden");
+        fld =properties.addField("custpage_property_apn", "text", "APN");
+                fld.setDisplayType("hidden");
+        fld =properties.addField("custpage_property_attomerror", "text", "Data pull ERROR");
+                fld.setDisplayType("hidden");
+        fld=properties.addField("custpage_property_num", "select", "Property Record", "customrecord_property");//text
+
+
+        //fld =properties.addField("custpage_property_listingtype", "text", "LISTING TYPE (SWAGGER)");
+               // fld.setDisplayType("disabled");
+        //fld =properties.addField("custpage_property_eventtype", "text", "EVENT TYPE");
+                //fld.setDisplayType("disabled");
+        //fld =properties.addField("custpage_property_eventeffective", "text", "EVENT EFFECTIVE DATE");
+                //fld.setDisplayType("disabled");
+        //fld =properties.addField("custpage_property_lastsalesamount", "text", "LAST SALE AMOUNT");
+                //fld.setDisplayType("disabled");
+                //fld =properties.addField("custpage_property_swaggererror", "text", "SWAGGER ERROR");
+                //fld.setDisplayType("disabled");
+        //fld =properties.addField("custpage_property_est_mortage_amt_last_update", "text", "ESTIMATED MORTAGAGE AMOUNT LAST UPDATED");
+          //      fld.setDisplayType("disabled");
+
         if (estate != null) {
           var filters = [];
           filters.push(new nlobjSearchFilter("custrecord_property_estate", null, "is", estateId));
@@ -423,25 +509,84 @@ function New_Customer_Application(request, response) {
           cols.push(new nlobjSearchColumn("custrecord_property_mortgage"));
           cols.push(new nlobjSearchColumn("custrecord_property_percent_owned"));
           cols.push(new nlobjSearchColumn("custrecord_property_total"));
+                  cols.push(new nlobjSearchColumn("custrecord_saleamount"));
+                  cols.push(new nlobjSearchColumn("custrecord_estimatedvalue"));
+                 // cols.push(new nlobjSearchColumn("custrecord_listingtype"));
+                  cols.push(new nlobjSearchColumn("custrecord_event_type_new"));
+                  //cols.push(new nlobjSearchColumn("custrecord_event_effective_date"));
+                  //cols.push(new nlobjSearchColumn("custrecord_last_sales_date"));
+                  //cols.push(new nlobjSearchColumn("custrecord_last_sale_valueamount"));
+                  //cols.push(new nlobjSearchColumn("custrecord_error"));
+                  cols.push(new nlobjSearchColumn("custrecord_attom_error"));
+                  cols.push(new nlobjSearchColumn("custrecord_notes"));
+                  cols.push(new nlobjSearchColumn("custrecord_sold"));
+                  cols.push(new nlobjSearchColumn("custrecord_escrow"));
+                    cols.push(new nlobjSearchColumn("custrecord_dot"));
+                  cols.push(new nlobjSearchColumn("custrecord_est_mortage_amt_attom"));
+                  //cols.push(new nlobjSearchColumn("custrecord_swagger_script_last_run_date"));
+                  //cols.push(new nlobjSearchColumn("custrecord_est_mortage_amt_last_update"));
+                  cols.push(new nlobjSearchColumn("custrecord_last_sale_date_attom"));
+                    cols.push(new nlobjSearchColumn("custrecord_preforeclosure_status"));
+                  cols.push(new nlobjSearchColumn("custrecord_owner_name"));
+                  cols.push(new nlobjSearchColumn("custrecord_property_type"));
+                  cols.push(new nlobjSearchColumn("custrecord_apn"));
+                  cols.push(new nlobjSearchColumn("custrecord_auction_date"));
+
+                    var propertyDot;
+                    var propertyEscrow="F";
           var results = nlapiSearchRecord("customrecord_property", null, filters, cols);
           if (results) {
             var lines = [];
             for (var x = 0; x < results.length; x++) {
+             var estamount=parseInt(0).toFixed(0);
+              if(results[x].getValue("custrecord_estimatedvalue"))
+              estamount=parseInt(results[x].getValue("custrecord_estimatedvalue")).toFixed(0);
+             
+                            if(propertyDot!=1 && propertyDot!=2)
+                                propertyDot=results[x].getValue("custrecord_dot");
+                            if(propertyEscrow=="F")
+                                propertyEscrow=results[x].getValue("custrecord_escrow");
               lines.push({
                 custpage_property_id: results[x].getId(),
+       
+                custpage_property_num:results[x].getId(),
+                //custpage_property_link: "<a href='/app/common/custom/custrecordentry.nl?rectype=279&id=" + results[x].getId() + "' target='_blank'>View Property</a>",
                 custpage_property_address: results[x].getValue("name"),
                 custpage_property_value: results[x].getValue("custrecord_property_value"),
                 custpage_property_mortgage: results[x].getValue("custrecord_property_mortgage"),
                 custpage_property_owned: results[x].getValue("custrecord_property_percent_owned"),
-                custpage_property_total: results[x].getValue("custrecord_property_total")
+                custpage_property_total: results[x].getValue("custrecord_property_total"),
+                                custpage_property_salesamount: results[x].getValue("custrecord_saleamount"),
+                                custpage_property_estamount:estamount ,
+                                // custpage_property_listingtype: results[x].getValue("custrecord_listingtype"),
+                                 //custpage_property_eventeffective: results[x].getValue("custrecord_event_effective_date"),
+                                 custpage_property_lastsalesdate: results[x].getValue("custrecord_last_sale_date_attom"),
+                                 custpage_property_eventtype: results[x].getValue("custrecord_event_type_new"),
+                                 //custpage_property_lastsalesamount: results[x].getValue("custrecord_last_sale_valueamount"),
+                                 custpage_property_est_mortage_amt_attom: results[x].getValue("custrecord_est_mortage_amt_attom"),
+                                 //custpage_property_est_mortage_amt_last_update: results[x].getValue("custrecord_est_mortage_amt_last_update"),
+                                custpage_property_preforeclosure_status: results[x].getValue("custrecord_preforeclosure_status"),
+                                 custpage_property_auction_date: results[x].getValue("custrecord_auction_date"),
+                                 custpage_property_attomerror: results[x].getValue("custrecord_attom_error"),
+                                 custpage_property_note: results[x].getValue("custrecord_notes"),
+                                 custpage_property_escrow: results[x].getValue("custrecord_escrow"),
+                                custpage_property_dot: results[x].getValue("custrecord_dot"),
+                                 custpage_property_owner_name: results[x].getValue("custrecord_owner_name"),
+                                 custpage_property_property_type: results[x].getValue("custrecord_property_type"),
+                                 custpage_property_apn: results[x].getValue("custrecord_apn"),
+                                 custpage_property_sold: results[x].getValue("custrecord_sold")
+
               });
             }
             properties.setLineItemValues(lines);
           }
         }
-  
-        nlapiLogExecution("debug", "Added Properties");
-  
+                if(propertyEscrow=="T")
+                    escrowField.setDefaultValue("T");
+                if(propertyDot==1 || propertyDot==2)
+                    dotField.setDefaultValue("T");
+                nlapiLogExecution("debug", "Added Properties");
+
         var accounts = form.addSubList("custpage_accounts", "inlineeditor", "Cash Accounts/Other Assets", "financials");
         accounts.addField("custpage_accounts_name", "text", "Cash Account/Other Asset");
         accounts.addField("custpage_accounts_date", "date", "Date");
@@ -449,7 +594,7 @@ function New_Customer_Application(request, response) {
         fld.setMandatory(true);
         fld = accounts.addField("custpage_accounts_id", "select", "Account/Asset ID", "customrecord_asset");
         fld.setDisplayType("hidden");
-  
+
         if (estate != null) {
           var filters = [];
           filters.push(new nlobjSearchFilter("custrecord_asset_estate", null, "is", estateId));
@@ -471,9 +616,9 @@ function New_Customer_Application(request, response) {
             accounts.setLineItemValues(lines);
           }
         }
-  
+
         nlapiLogExecution("debug", "Added Assets");
-  
+
         var claims = form.addSubList("custpage_claims", "inlineeditor", "Creditor Claims", "financials");
         claims.addField("custpage_claims_name", "text", "Claim Name");
         claims.addField("custpage_claims_date", "date", "Date");
@@ -481,7 +626,7 @@ function New_Customer_Application(request, response) {
         fld.setMandatory(true);
         fld = claims.addField("custpage_claim_id", "select", "Claim ID", "customrecord_claim");
         fld.setDisplayType("hidden");
-  
+
         if (estateId != null) {
           var filters = [];
           filters.push(new nlobjSearchFilter("custrecord_claim_estate", null, "is", estateId));
@@ -503,9 +648,9 @@ function New_Customer_Application(request, response) {
             claims.setLineItemValues(lines);
           }
         }
-  
+
         nlapiLogExecution("debug", "Added Claims");
-  
+
         fld = form.addField("custpage_net_equity_value", "integer", "Net Equity Value of the Estate", null, "sizing");
         fld.setDisplayType("inline");
         fld.setLayoutType("startrow", "startcol");
@@ -543,28 +688,28 @@ function New_Customer_Application(request, response) {
         if (customer != null && customer.getFieldValue("custentity_advance_to_value_ratio") != null && customer.getFieldValue("custentity_advance_to_value_ratio") != "")
           fld.setDefaultValue(customer.getFieldValue("custentity_advance_to_value_ratio"));
         else
-          fld.setDefaultValue("33%");
+          fld.setDefaultValue("36%");
         fld = form.addField("custpage_max_advance", "integer", "Maximum Advance Size", null, "sizing");
         fld.setDisplayType("inline");
         fld.setLayoutType("startrow", "none");
-  
+
         fld = form.addField("custpage_desired_advance", "integer", "Desired Advance Size", null, "pricing");
         fld.setLayoutType("startrow", "none");
         if (customer != null && customer.getFieldValue("custentity_desired_advance_size") != null && customer.getFieldValue("custentity_desired_advance_size") != "")
           fld.setDefaultValue(customer.getFieldValue("custentity_desired_advance_size"));
-  
+
         fld = form.addField("custpage_price_level", "select", "Pricing Level", "customrecord_price_option", "pricing");
         fld.setLayoutType("startrow", "none");
         if (customer != null && customer.getFieldValue("custentity_pricing_level") != null && customer.getFieldValue("custentity_pricing_level") != "")
           fld.setDefaultValue(customer.getFieldValue("custentity_pricing_level"));
         else
-          fld.setDefaultValue("3");
-  
+               fld.setDefaultValue( "5" );//3
+
         fld = form.addField("custpage_months_remaining", "float", "Guess of Months Remaining", null, "pricing");
         fld.setLayoutType("startrow", "none");
         //fld.setDisplayType("inline");
         fld.setDefaultValue(18);
-  
+
         fld = form.addField("custpage_early_rebate_1", "select", "Early Rebate Option 1 (Months)", null, "pricing");
         fld.setLayoutType("normal", "startcol");
         fld.addSelectOption("", "", true);
@@ -576,7 +721,7 @@ function New_Customer_Application(request, response) {
         fld.addSelectOption("24", "24", false);
         if (customer != null && customer.getFieldValue("custentity_early_rebate_option_1") != null && customer.getFieldValue("custentity_early_rebate_option_1") != "")
           fld.setDefaultValue(customer.getFieldValue("custentity_early_rebate_option_1"));
-  
+
         fld = form.addField("custpage_early_rebate_2", "select", "Early Rebate Option 2 (Months)", null, "pricing");
         fld.addSelectOption("", "", true);
         fld.addSelectOption("3", "3", false);
@@ -587,7 +732,7 @@ function New_Customer_Application(request, response) {
         fld.addSelectOption("24", "24", false);
         if (customer != null && customer.getFieldValue("custentity_early_rebate_option_2") != null && customer.getFieldValue("custentity_early_rebate_option_2") != "")
           fld.setDefaultValue(customer.getFieldValue("custentity_early_rebate_option_2"));
-  
+
         fld = form.addField("custpage_early_rebate_3", "select", "Early Rebate Option 3 (Months)", null, "pricing");
         fld.addSelectOption("", "", true);
         fld.addSelectOption("3", "3", false);
@@ -598,31 +743,31 @@ function New_Customer_Application(request, response) {
         fld.addSelectOption("24", "24", false);
         if (customer != null && customer.getFieldValue("custentity_early_rebate_option_3") != null && customer.getFieldValue("custentity_early_rebate_option_3") != "")
           fld.setDefaultValue(customer.getFieldValue("custentity_early_rebate_option_3"));
-  
+
         fld = form.addField("custpage_assignment_size", "integer", "Assignment Size", null, "pricing");
         fld.setLayoutType("startrow", "none");
-  
+
         fld = form.addField("custpage_early_rebate_1_amt", "integer", "Option 1 Pricing", null, "pricing");
         fld.setLayoutType("normal", "startcol");
         fld = form.addField("custpage_early_rebate_2_amt", "integer", "Option 2 Pricing", null, "pricing");
         fld = form.addField("custpage_early_rebate_3_amt", "integer", "Option 3 Pricing", null, "pricing");
-  
+
         //Get quote button
         var fld = form.addField("custpage_get_quote", "inlinehtml", "Get Quote", null, "pricing");
         fld.setDefaultValue("<input type='button' name='getquote' id='getquote' value='Get Quote' onclick='createQuote();'/>");
-  
-  
+
+
         fld = form.addField("custpage_calculated_fee", "currency", "Calculated Fee", null, "temp");
         fld.setDisplayType("hidden");
-  
+
         fld = form.addField("custpage_rate_of_return", "float", "Rate of Return", null, "temp");
         fld.setDisplayType("hidden");
-  
+
         //fld = form.addField("custpage_update_case_status","select","Case Status","customlist_case_statuses","case_status");
         //fld = form.addField("custpage_update_case_status_notes","textarea","Case Status Notes",null,"case_status");
         //fld = form.addField("custpage_update_case_status_button","inlinehtml","Update Case Status Button",null,"case_status");
         //fld.setDefaultValue("<input type='button' name='updatecasestatus' id='updatecasestatus' value='Update Case Status' onclick='updateCaseStatus();'/>");
-  
+
         var priorQuotes = form.addSubList("custpage_prior_quotes", "list", "Prior Quotes", "quotes");
         priorQuotes.addField("custpage_quote_link", "text", "View Quote");
         priorQuotes.addField("custpage_quote_preferred", "checkbox", "Preferred?");
@@ -632,24 +777,24 @@ function New_Customer_Application(request, response) {
         priorQuotes.addField("custpage_quote_date", "date", "Date");
         priorQuotes.addField("custpage_quote_advance", "currency", "Advance");
         priorQuotes.addField("custpage_quote_assignment", "currency", "Assignment");
-  
+
         priorQuotes.addField("custpage_quote_option_1", "currency", "Option 1");
         priorQuotes.addField("custpage_quote_option_2", "currency", "Option 2");
         priorQuotes.addField("custpage_quote_option_3", "currency", "Option 3");
-  
+
         priorQuotes.addField("custpage_quote_rebate_1", "currency", "Rebate 1");
         priorQuotes.addField("custpage_quote_rebate_2", "currency", "Rebate 2");
         priorQuotes.addField("custpage_quote_rebate_3", "currency", "Rebate 3");
-  
+
         priorQuotes.addField("custpage_quote_time_1", "integer", "Time 1");
         priorQuotes.addField("custpage_quote_time_2", "integer", "Time 2");
         priorQuotes.addField("custpage_quote_time_3", "integer", "Time 3");
         fld = priorQuotes.addField("custpage_quote_internalid", "select", "Quote ID", "estimate");
         fld.setDisplayType("hidden");
-  
+
         priorQuotes.addField("custpage_quote_mail_merge", "text", "Mail Merge");
         priorQuotes.addField("custpage_quote_create_invoice", "text", "Create Invoice");
-  
+
         if (request.getParameter("customer") != null && request.getParameter("customer") != "") {
           var filters = [];
           filters.push(new nlobjSearchFilter("entity", null, "is", request.getParameter("customer")));
@@ -675,7 +820,7 @@ function New_Customer_Application(request, response) {
           var results = nlapiSearchRecord("estimate", null, filters, cols);
           if (results) {
             var lines = [];
-  
+
             for (var x = 0; x < results.length; x++) {
               lines.push({
                 custpage_quote_internalid: results[x].getId(),
@@ -700,13 +845,13 @@ function New_Customer_Application(request, response) {
                 custpage_quote_mail_merge: "<input type='button' name='mailmerge' id='mailmerge" + results[x].getId() + "' value='Mail Merge' onclick='mailMerge(" + results[x].getId() + ");'/>"
               });
             }
-  
+
             priorQuotes.setLineItemValues(lines);
           }
         }
-  
+
         nlapiLogExecution("debug", "Added Prior Quotes");
-  
+
         var caseStatus = form.addSubList("custpage_case_status_list", "inlineeditor", "Case Status", "quotes");
         fld = caseStatus.addField("custpage_case_status_id", "select", "Case Status Internal ID", "customrecord_case_status");
         fld.setDisplayType("hidden");
@@ -715,7 +860,7 @@ function New_Customer_Application(request, response) {
         caseStatus.addField("custpage_case_status_timestamp", "text", "Date/Time Updated");
         caseStatus.addField("custpage_case_status_user", "text", "Updated By");
         //caseStatus.addRefreshButton();
-  
+
         if (request.getParameter("customer") != null && request.getParameter("customer") != "") {
           var filters = [];
           filters.push(new nlobjSearchFilter("custrecord_case_status_customer", null, "is", request.getParameter("customer")));
@@ -728,7 +873,7 @@ function New_Customer_Application(request, response) {
           var results = nlapiSearchRecord("customrecord_case_status", null, filters, cols);
           if (results) {
             var lines = [];
-  
+
             for (var x = 0; x < results.length; x++) {
               lines.push({
                 custpage_case_status_id: results[x].getId(),
@@ -738,13 +883,70 @@ function New_Customer_Application(request, response) {
                 custpage_case_status_user: results[x].getText("owner")
               });
             }
-  
+
             caseStatus.setLineItemValues(lines);
           }
+               //////// Messages Sublist from chat /////////////////
+
+               var messages = form.addSubList( "custpage_messages", "inlineeditor", "Messages", "message" );
+               fld = messages.addField( "custpage_date", "text", "Date" );
+               fld = messages.addField( "custpage_author", "text", "AUTHOR" );
+               fld = messages.addField( "custpage_receipient", "text", "PRIMARY RECIPIENT" );
+               fld = messages.addField( "custpage_body", "textarea", "Body" );
+            
+               var sms_receipt_Search = nlapiSearchRecord( "customrecord_mmsdf_sms_receipt", null,
+                  [
+                     [ "custrecord_mmsdf_sms_receipt_recpnt_id", "anyof", request.getParameter( "customer" ) ]
+                  ],
+                  [
+                     new nlobjSearchColumn( "custrecord_mmsdf_sms_receipt_sender" ),
+                     new nlobjSearchColumn( "created" ),
+                     new nlobjSearchColumn( "custrecord_mmsdf_sms_receipt_message" ),
+                     new nlobjSearchColumn( "altname", "CUSTRECORD_MMSDF_SMS_RECEIPT_RECPNT_ID", null ),
+                     new nlobjSearchColumn( "custrecord_mmsdf_sms_receipt_msgid" )
+                  ]
+               );
+
+               if ( sms_receipt_Search ) {
+                  var chatData = [];
+                  for ( var m1 = 0; m1 < sms_receipt_Search.length; m1++ ) {
+
+                     chatData.push( {
+                        custpage_body: sms_receipt_Search[ m1 ].getValue( "custrecord_mmsdf_sms_receipt_message" ),
+                        custpage_date: sms_receipt_Search[ m1 ].getValue( "created" ),
+                        custpage_author: sms_receipt_Search[ m1 ].getText( "custrecord_mmsdf_sms_receipt_sender" ),
+                        custpage_receipient: sms_receipt_Search[ m1 ].getValue( "altname", "custrecord_mmsdf_sms_receipt_recpnt_id" )
+                     } );
+                     var id = sms_receipt_Search[ m1 ].getId();
+                     if ( id ) {
+                        var sms_reply_Search = nlapiSearchRecord( "customrecord_mmsdf_sms_reply", null,
+                           [
+                              [ "custrecord_mmsdf_reply_smsreceiptid", "anyof", id ]
+                           ],
+                           [
+                              new nlobjSearchColumn( "custrecord_mmsdf_reply_message" ),
+                              new nlobjSearchColumn( "created" )
+                           ]
+                        );
+                        if ( sms_reply_Search ) {
+                           chatData.push( {
+                              custpage_body: sms_reply_Search[ 0 ].getValue( "custrecord_mmsdf_reply_message" ),
+                              custpage_date: sms_reply_Search[ 0 ].getValue( "created" ),
+                              custpage_author: sms_receipt_Search[ m1 ].getValue( "altname", "custrecord_mmsdf_sms_receipt_recpnt_id" ),
+                              custpage_receipient: sms_receipt_Search[ m1 ].getText( "custrecord_mmsdf_sms_receipt_sender" )
+                           } );
+                        }
+                     }
+
+                  }
+                  messages.setLineItemValues( chatData );
+               }
+
+               /////////////////////////////////////////////////////
         }
-  
+
         nlapiLogExecution("debug", "Added Case Statuses");
-  
+
         var otherAssignments = form.addSubList("custpage_other_assignments", "inlineeditor", "Assignments Done with Other Companies", "quotes");
         otherAssignments.addField("custpage_other_company", "text", "Advance Company");
         otherAssignments.addField("custpage_other_date", "date", "Date");
@@ -756,7 +958,7 @@ function New_Customer_Application(request, response) {
         fld.addSelectOption('', "");
         for (var nI = 1; nI <= 50; nI++)
           fld.addSelectOption(nI, "Priority " + nI);
-  
+
         var invoice_results = null;
         if (customerId != null) {
           var filters = [];
@@ -787,7 +989,7 @@ function New_Customer_Application(request, response) {
               });
             }
           }
-  
+
           filters = [];
           filters.push(new nlobjSearchFilter("entity", null, "is", customerId));
           filters.push(new nlobjSearchFilter("mainline", null, "is", "T"));
@@ -812,25 +1014,25 @@ function New_Customer_Application(request, response) {
           cols.push(new nlobjSearchColumn("custbody_option_3_pricing"));
           cols.push(new nlobjSearchColumn("internalid"));
           invoice_results = nlapiSearchRecord("invoice", null, filters, cols);
-  
+
           if (invoice_results) {
             for (var x = invoice_results.length - 1; x >= 0; x--) {
               var exist_check = false,
-                priority = '';
+              priority = '';
               if (results) {
                 for (var y = 0; y < results.length; y++) {
                   if (results[y].getValue('custrecord_existing_assignment_invoice') == invoice_results[x].getId()) {
                     exist_check = true;
                     break;
                   }
-  
+
                   var g1 = new Date(results[y].getValue('custrecord_existing_assignment_date'));
                   var g2 = new Date(invoice_results[x].getValue('trandate'));
                   if (g1.getTime() <= g2.getTime())
                     priority = results[y].getValue('custrecord_existing_assignment_priority');
                 }
               }
-  
+
               if (!exist_check) {
                 var assign_rec = nlapiCreateRecord('customrecord_existing_assignment');
                 assign_rec.setFieldValue("name", "Probate Advance #" + invoice_results[x].getValue("tranid"));
@@ -841,10 +1043,10 @@ function New_Customer_Application(request, response) {
                 assign_rec.setFieldValue("custrecord_existing_assignment_priority", priority);
                 assingment_size = Math.floor(invoice_results[x].getValue("custbody_assignment_size"));
                 if (!assingment_size) assingment_size = invoice_results[x].getValue("amount");
-  
+
                 assign_rec.setFieldValue("custrecord_existing_assignment_amount", parseInt(assingment_size));
                 assignment_id = nlapiSubmitRecord(assign_rec, true, true);
-  
+
                 lines.push({
                   custpage_assignment_id: assignment_id,
                   //custpage_other_company : "<a href='/app/accounting/transactions/custinvc.nl?id=" + invoice_results[x].getId() + "' target='_blank'>View Invoice</a>&nbsp;&nbsp;"+invoice_results[x].getValue("tranid"),
@@ -855,13 +1057,13 @@ function New_Customer_Application(request, response) {
                 });
               }
             }
-  
+
           }
           otherAssignments.setLineItemValues(lines);
         }
-  
+
         nlapiLogExecution("debug", "Added Assignments");
-  
+
         var leinsJudgments = form.addSubList("custpage_leins_judgements_list", "inlineeditor", "Leins/Judgements", "quotes");
         leinsJudgments.addField("custpage_lein_judgement_name", "text", "Lein/Judgement");
         leinsJudgments.addField("custpage_lein_judgement_date", "date", "Date");
@@ -869,7 +1071,7 @@ function New_Customer_Application(request, response) {
         fld.setMandatory(true);
         fld = leinsJudgments.addField("custpage_lein_id", "select", "Lein/Judgement ID", "customrecord_lein_judgement");
         fld.setDisplayType("hidden");
-  
+
         if (customerId != null) {
           var filters = [];
           filters.push(new nlobjSearchFilter("custrecord_lein_judgement_customer", null, "is", customerId));
@@ -880,7 +1082,7 @@ function New_Customer_Application(request, response) {
           var results = nlapiSearchRecord("customrecord_lein_judgement", null, filters, cols);
           if (results) {
             var lines = [];
-  
+
             for (var x = 0; x < results.length; x++) {
               lines.push({
                 custpage_lein_id: results[x].getId(),
@@ -889,13 +1091,13 @@ function New_Customer_Application(request, response) {
                 custpage_lein_judgement_amount: results[x].getValue("custrecord_lein_judgement_amount"),
               });
             }
-  
+
             leinsJudgments.setLineItemValues(lines);
           }
         }
-  
+
         nlapiLogExecution("debug", "Added Leins/Judgments");
-  
+
         var phonecalls = form.addSubList("custpage_phonecalls", "inlineeditor", "Phone Calls", "phonecalls");
         fld = phonecalls.addField("custpage_phonecalls_title", "text", "Subject");
         fld.setMaxLength(255);
@@ -906,7 +1108,7 @@ function New_Customer_Application(request, response) {
         fld = phonecalls.addField("custpage_phonecalls_date", "date", "Date");
         fld = phonecalls.addField("custpage_phonecalls_id", "text", "Activity ID");
         fld.setDisplayType("hidden");
-  
+
         if (estate != null) {
           var filters = [];
           filters.push(new nlobjSearchFilter("company", null, "is", estateId));
@@ -923,7 +1125,7 @@ function New_Customer_Application(request, response) {
               if (x == 0) {
                 nextCallFld.setDefaultValue(results[x].getValue("startdate") + " " + results[x].getValue("title"));
               }
-  
+
               lines.push({
                 custpage_phonecalls_id: results[x].getId(),
                 custpage_phonecalls_title: results[x].getValue("title"),
@@ -933,20 +1135,20 @@ function New_Customer_Application(request, response) {
                 custpage_phonecalls_message: results[x].getValue("message")
               });
             }
-  
+
             phonecalls.setLineItemValues(lines);
           }
         }
-  
+
         nlapiLogExecution("debug", "Added Phone Calls");
-  
+
         var events = form.addSubList("custpage_events", "inlineeditor", "Events", "events");
         fld = events.addField("custpage_events_title", "text", "Title");
         fld.setDisplaySize(50);
         fld = events.addField("custpage_events_date", "date", "Date");
         fld = events.addField("custpage_events_id", "text", "Event ID");
         fld.setDisplayType("hidden");
-  
+
         if (estate != null) {
           var filters = [];
           filters.push(new nlobjSearchFilter("attendee", null, "is", estateId));
@@ -963,7 +1165,7 @@ function New_Customer_Application(request, response) {
               if (x == 0) {
                 nextEventFld.setDefaultValue(results[x].getValue("startdate") + " " + results[x].getValue("title"));
               }
-  
+
               lines.push({
                 custpage_events_id: results[x].getId(),
                 custpage_events_title: results[x].getValue("title"),
@@ -973,13 +1175,13 @@ function New_Customer_Application(request, response) {
                 custpage_events_end_time: results[x].getValue("endtime")
               });
             }
-  
+
             events.setLineItemValues(lines);
           }
         }
-  
+
         nlapiLogExecution("debug", "Added Events");
-  
+
         var usernotes = form.addSubList("custpage_user_notes", "list", "User Notes", "usernotes");
         fld = usernotes.addField("custpage_user_notes_author", "text", "Title");
         //fld.setDisplaySize(50);
@@ -987,7 +1189,7 @@ function New_Customer_Application(request, response) {
         fld = usernotes.addField("custpage_user_notes_note", "textarea", "Note");
         fld = usernotes.addField("custpage_user_notes_internalid", "text", "Note Internal ID");
         fld.setDisplayType("hidden");
-  
+
         if (customerId != null) {
           var filters = [];
           filters.push(new nlobjSearchFilter("internalid", "customer", "is", customerId));
@@ -1006,13 +1208,13 @@ function New_Customer_Application(request, response) {
                 custpage_user_notes_note: results[x].getValue("note")
               });
             }
-  
+
             usernotes.setLineItemValues(lines);
           }
         }
-  
+
         nlapiLogExecution("debug", "Added User Notes");
-  
+
         var contacts = form.addSubList("custpage_contacts", "inlineeditor", "Contacts", "relationships");
         contacts.addField("custpage_contacts_name", "text", "Contact");
         contacts.addField("custpage_contacts_job_title", "text", "Job Title");
@@ -1022,7 +1224,7 @@ function New_Customer_Application(request, response) {
         contacts.addField("custpage_contacts_role", "text", "Role");
         fld = contacts.addField("custpage_contacts_id", "text", "Contact ID");
         fld.setDisplayType("hidden");
-  
+
         if (estate != null) {
           var filters = [];
           filters.push(new nlobjSearchFilter("company", null, "is", estateId));
@@ -1050,48 +1252,48 @@ function New_Customer_Application(request, response) {
             contacts.setLineItemValues(lines);
           }
         }
-  
+
         nlapiLogExecution("debug", "Added Contacts");
-  
+
         //Jurisdiction Tab
         fld = form.addField("custpage_jurisdiction_county", "select", "County", "customrecord173", "jurisdiction");
         if (estate != null)
           fld.setDefaultValue(estate.getFieldValue("custentity2"));
-  
+
         var county = null;
         if (estate != null && estate.getFieldValue("custentity2") != null && estate.getFieldValue("custentity2") != "")
           county = nlapiLookupField("customrecord173", estate.getFieldValue("custentity2"), ["custrecord_county_pleading_title", "custrecord_county_address_of_court", "custrecord_county_court_phone_number", "custrecord_county_court_name", "custrecord_court_street_address", "custrecord_court_city", "custrecord_court_state", "custrecord_court_zip"]);
-  
+
         fld = form.addField("custpage_jurisdiction_pleading_title", "textarea", "Pleading Title", null, "jurisdiction");
         if (county != null)
           fld.setDefaultValue(county.custrecord_county_pleading_title);
-  
+
         fld = form.addField("custpage_jurisdiction_court_name", "text", "Court Name", null, "jurisdiction");
         if (county != null)
           fld.setDefaultValue(county.custrecord_county_court_name);
-  
+
         fld = form.addField("custpage_jurisdiction_court_address", "text", "Court Address", null, "jurisdiction");
         if (county != null)
           fld.setDefaultValue(county.custrecord_court_street_address);
-  
+
         fld = form.addField("custpage_jurisdiction_court_city", "text", "Court City", null, "jurisdiction");
         if (county != null)
           fld.setDefaultValue(county.custrecord_court_city);
-  
+
         fld = form.addField("custpage_jurisdiction_court_state", "text", "Court State", null, "jurisdiction");
         if (county != null)
           fld.setDefaultValue(county.custrecord_court_state);
-  
+
         fld = form.addField("custpage_jurisdiction_court_zip", "text", "Court Zip Code", null, "jurisdiction");
         if (county != null)
           fld.setDefaultValue(county.custrecord_court_zip);
-  
+
         fld = form.addField("custpage_jurisdiction_court_phone", "text", "Court Phone Number", null, "jurisdiction");
         if (county != null)
           fld.setDefaultValue(county.custrecord_county_court_phone_number);
-  
+
         nlapiLogExecution("debug", "Set Justification Tab...");
-  
+
         var invoiceList = form.addSubList("custpage_invoice_list", "list", "Invoices", "invoices");
         invoiceList.addField("custpage_invoice_link", "text", "View Invoice");
         invoiceList.addField("custpage_invoice_tranid", "text", "Invoice Number");
@@ -1112,14 +1314,14 @@ function New_Customer_Application(request, response) {
         invoiceList.addField("custpage_invoice_stamped_assignment", "text", "Stamped Assignment");
         fld = invoiceList.addField("custpage_invoice_internalid", "select", "Invoice ID", "invoice");
         fld.setDisplayType("hidden");
-  
+
         nlapiLogExecution("debug", "Created Invoice Sublist");
-  
+
         if (customerId != null && customerId != "") {
-  
+
           if (invoice_results) {
             var lines = [];
-  
+
             for (var x = 0; x < invoice_results.length; x++) {
               lines.push({
                 custpage_invoice_internalid: invoice_results[x].getId(),
@@ -1140,58 +1342,117 @@ function New_Customer_Application(request, response) {
                 custpage_invoice_attach: "<input type='button' name='attachAssignment" + invoice_results[x].getId() + "' id='attachAssignment" + invoice_results[x].getId() + "' value='Attach Assignment' onclick='attachAssignment(" + invoice_results[x].getId() + ");'/>",
               });
             }
-  
+
             invoiceList.setLineItemValues(lines);
           }
         }
-  
+
+        var followupList = form.addSubList("custpage_followup_list", "inlineeditor", "Follow Up", "followup");
+                fld=followupList.addField("custpage_followup_id", "text", "Title");
+        fld.setDisplayType("hidden");
+        fld=followupList.addField("custpage_followup_title", "text", "Title");
+        fld.setDisplayType("disabled");
+        fld=followupList.addField("custpage_followup_customer", "text", "Customer");
+        fld.setDisplayType("disabled");
+        fld=followupList.addField("custpage_followup_phone", "text", "Phone");
+        fld.setDisplayType("disabled");
+        fld=followupList.addField("custpage_followup_date", "text", "Date");
+        fld.setDisplayType("disabled");
+        fld=followupList.addField("custpage_followup_note", "textarea", "Note");
+        fld.setDisplayType("disabled");
+                fld= followupList.addField("custpage_followup_completed", "checkbox", "Completed");
+                fld.setDisplayType("disabled");
+        fld=followupList.addField("custpage_followup_completed_date", "text", "Completed Date");
+          fld.setDisplayType("disabled");
+        fld=followupList.addField("custpage_followup_assinged", "select", "Assigned",'employee');
+                fld=followupList.addField("custpage_followup_completedby", "select", "Completed by",'employee');
+
+        if(customerId){
+          var filters = [];
+          filters.push(new nlobjSearchFilter("custrecord_followup_customer", null, "anyof", customerId));
+          var cols = [];
+          cols.push(new nlobjSearchColumn("custrecord_followup_customer"));
+          cols.push(new nlobjSearchColumn("custrecord_followup_date").setSort(true));
+          cols.push(new nlobjSearchColumn("custrecord_followup_phone"));
+          cols.push(new nlobjSearchColumn("custrecord_followup_title"));
+          cols.push(new nlobjSearchColumn("custrecord_followup_note"));
+          cols.push(new nlobjSearchColumn("custrecord_complete_date"));
+          cols.push(new nlobjSearchColumn("custrecord_assigned"));
+                    cols.push(new nlobjSearchColumn("custrecord_followup_completed"));
+          cols.push(new nlobjSearchColumn("custrecord_followup_completedby"));
+                  
+
+          
+          var results = nlapiSearchRecord("customrecord_customer_follow_up", null, filters, cols);
+          if (results) {
+            var lines = [];
+            for (var x = 0; x < results.length; x++) {
+              lines.push({
+                              custpage_followup_id: results[x].id,
+                custpage_followup_title: results[x].getValue('custrecord_followup_title'),
+                custpage_followup_customer: results[x].getText("custrecord_followup_customer"),
+                custpage_followup_phone: results[x].getValue("custrecord_followup_phone"),
+                custpage_followup_date: results[x].getValue("custrecord_followup_date"),
+                custpage_followup_note: results[x].getValue("custrecord_followup_note"),
+                custpage_followup_assinged: results[x].getValue("custrecord_assigned"),
+                custpage_followup_completed_date: results[x].getValue("custrecord_complete_date"),
+                              custpage_followup_completed: results[x].getValue("custrecord_followup_completed"),
+                              custpage_followup_completedby:results[x].getValue("custrecord_followup_completedby")
+              });
+            }
+            followupList.setLineItemValues(lines);
+          }
+        }
+
         nlapiLogExecution("debug", "Created Invoice Sublist DATA");
-  
+
         if (estateId != null && estateId != "") {
           form.addTab("custpage_create_box_subtab", "Documents");
           fld = form.addField("custpage_box_frame_new", "inlinehtml", "Frame", null, "custpage_create_box_subtab");
-  
+
           nlapiLogExecution("debug", "Added Box Subtab");
-  
+
           var frame_url = nlapiResolveURL("SUITELET", "customscript_box_client", "customdeploy_box_client");
           frame_url += "&record_id=" + estateId + "&record_type=customer";
-  
+
           nlapiLogExecution("debug", "frame_url", frame_url);
-  
+
           var content = '<iframe id="boxnet_widget_frame" src="' + frame_url + '" align="center" style="width: 100%; height:600px; margin:0; border:0; padding:0" frameborder="0"></iframe>';
           fld.setDefaultValue(content);
-  
+
           nlapiLogExecution("debug", "Added default value to field");
         }
-  
-  
+
+
         //Added the Buttons based on the Customer Load..
         if (estate != null && estateId != null && estateId != "") {
-  
+
           //Check if the customer and Estate is also Loaded.....
           if(customer != null && customerId != null && customerId != '' && estate != null && estateId != null && estateId != "" ){
-  
-               var isestateInactive = estate.getFieldValue("isinactive");
-               nlapiLogExecution("debug", "isestateInactive", 'isestateInactive--' + isestateInactive);
-  
-              var oneInactive = false;
-              //If the customer is also loaded then add both the buttons....
-              var isChildInactive = customer.getFieldValue("isinactive");
-              nlapiLogExecution("debug", "isChildInactive", 'isChildInactive--' + isChildInactive);
-              if(isChildInactive == 'F'){
-                //Adding delete button...
-                  form.addButton('custpage_deletecustomer', 'Delete Customer', 'DeleteCustomer();');
-              }else{
-                oneInactive = true;
-              }
-  
-              if (isestateInactive == 'F') {
-                //Adding delete button...
-                  form.addButton('custpage_deleteestate', 'Delete Estate', 'DeleteEstate();');
-              }else {
-                oneInactive = true;
-              }
-  
+
+            var isestateInactive = estate.getFieldValue("isinactive");
+            nlapiLogExecution("debug", "isestateInactive", 'isestateInactive--' + isestateInactive);
+
+            var oneInactive = false;
+            //If the customer is also loaded then add both the buttons....
+            var isChildInactive = customer.getFieldValue("isinactive");
+            nlapiLogExecution("debug", "isChildInactive", 'isChildInactive--' + isChildInactive);
+            if(isChildInactive == 'F'){
+              //Adding delete button...
+              form.addButton('custpage_deletecustomer', 'Delete Customer', 'DeleteCustomer();');
+            }else{
+              oneInactive = true;
+            }
+
+            if (isestateInactive == 'F') {
+              //Adding delete button...
+              form.addButton('custpage_deleteestate', 'Delete Estate', 'DeleteEstate();');
+            }else {
+              oneInactive = true;
+            }
+            form.addButton('custpage_remindercustomer', 'Follow Up', 'Customerreminder();');
+                  form.addButton( 'custpage_conversations', 'Conversations', 'Conversations();' );
+
               if(oneInactive){
                 //Adding delete button...
                 form.addSubmitButton("Recover");
@@ -1440,285 +1701,285 @@ function New_Customer_Application(request, response) {
   
           property.setFieldValue("name", request.getLineItemValue("custpage_properties", "custpage_property_address", x + 1));
           property.setFieldValue("custrecord_property_value", request.getLineItemValue("custpage_properties", "custpage_property_value", x + 1));
-          property.setFieldValue("custrecord_property_mortgage", request.getLineItemValue("custpage_properties", "custpage_property_mortgage", x + 1));
-          property.setFieldValue("custrecord_property_percent_owned", request.getLineItemValue("custpage_properties", "custpage_property_owned", x + 1));
-          property.setFieldValue("custrecord_property_total", request.getLineItemValue("custpage_properties", "custpage_property_total", x + 1));
-          propertyId = nlapiSubmitRecord(property, true, true);
-        }
-  
-        //Create asset records
-        for (var x = 0; x < request.getParameter("custpage_accounts"); x++) {
-          if (request.getLineItemValue("custpage_accounts", "custpage_accounts_id", x + 1) != null && request.getLineItemValue("custpage_accounts", "custpage_accounts_id", x + 1) != null)
-            var asset = nlapiLoadRecord("customrecord_asset", request.getLineItemValue("custpage_accounts", "custpage_accounts_id", x + 1));
-          else
-            var asset = nlapiCreateRecord("customrecord_asset");
-  
-          asset.setFieldValue("name", request.getLineItemValue("custpage_accounts", "custpage_accounts_name", x + 1));
-          asset.setFieldValue("custrecord_asset_date", request.getLineItemValue("custpage_accounts", "custpage_accounts_date", x + 1));
-          asset.setFieldValue("custrecord_asset_value", request.getLineItemValue("custpage_accounts", "custpage_accounts_value", x + 1));
-          asset.setFieldValue("custrecord_asset_estate", estateId);
-          assetId = nlapiSubmitRecord(asset, true, true);
-        }
-  
-        //Create claim records
-        for (var x = 0; x < request.getParameter("custpage_claims"); x++) {
-          if (request.getLineItemValue("custpage_claims", "custpage_claims_id", x + 1) != null && request.getLineItemValue("custpage_claims", "custpage_claims_id", x + 1) != null)
-            var claims = nlapiLoadRecord("customrecord_claim", request.getLineItemValue("custpage_claims", "custpage_claims_id", x + 1));
-          else
-            var claims = nlapiCreateRecord("customrecord_claim");
-  
-          claims.setFieldValue("name", request.getLineItemValue("custpage_claims", "custpage_claims_name", x + 1));
-          claims.setFieldValue("custrecord_asset_date", request.getLineItemValue("custpage_claims", "custpage_claims_date", x + 1));
-          claims.setFieldValue("custrecord_asset_value", request.getLineItemValue("custpage_claims", "custpage_claims_value", x + 1));
-          claims.setFieldValue("custrecord_asset_estate", estateId);
-          claimsId = nlapiSubmitRecord(claims, true, true);
-        }
-  
-        //Create quote
-        var quote = nlapiTransformRecord("customer", customerId, "estimate");
-        quote.setFieldValue("custbody_rebate_1_month", request.getParameter("custpage_early_rebate_1"));
-        quote.setFieldValue("custbody_rebate_2_month", request.getParameter("custpage_early_rebate_2"));
-        quote.setFieldValue("custbody_rebate_3_month", request.getParameter("custpage_early_rebate_3"));
-        quote.setFieldValue("custbody_rebate_1_amount", request.getParameter("custpage_early_rebate_1_amt"));
-        quote.setFieldValue("custbody_rebate_2_amount", request.getParameter("custpage_early_rebate_2_amt"));
-        quote.setFieldValue("custbody_rebate_3_amount", request.getParameter("custpage_early_rebate_3_amt"));
-  
-        quote.selectNewLineItem("item");
-        quote.setCurrentLineItemValue("item", "item", "7"); //Cash Advanced to Client
-        quote.setCurrentLineItemValue("item", "rate", request.getParameter("custpage_desired_advance"));
-        quote.setCurrentLineItemValue("item", "amount", request.getParameter("custpage_desired_advance"));
-        quote.commitLineItem("item");
-  
-        quote.selectNewLineItem("item");
-        quote.setCurrentLineItemValue("item", "item", "5"); //Fixed Fee
-        quote.setCurrentLineItemValue("item", "rate", request.getParameter("custpage_desired_advance"));
-        quote.setCurrentLineItemValue("item", "amount", request.getParameter("custpage_desired_advance"));
-        quote.commitLineItem("item");
-  
-        quote.selectNewLineItem("item");
-        quote.setCurrentLineItemValue("item", "item", "6"); //Deferred Revenue
-        quote.setCurrentLineItemValue("item", "rate", request.getParameter("custpage_desired_advance"));
-        quote.setCurrentLineItemValue("item", "amount", request.getParameter("custpage_desired_advance"));
-        quote.commitLineItem("item");
-  
-        var quoteId = nlapiSubmitRecord(quote, true, true);
-  
-        response.sendRedirect("RECORD", "estimate", quote);
+        property.setFieldValue("custrecord_property_mortgage", request.getLineItemValue("custpage_properties", "custpage_property_mortgage", x + 1));
+        property.setFieldValue("custrecord_property_percent_owned", request.getLineItemValue("custpage_properties", "custpage_property_owned", x + 1));
+        property.setFieldValue("custrecord_property_total", request.getLineItemValue("custpage_properties", "custpage_property_total", x + 1));
+        propertyId = nlapiSubmitRecord(property, true, true);
       }
+
+      //Create asset records
+      for (var x = 0; x < request.getParameter("custpage_accounts"); x++) {
+        if (request.getLineItemValue("custpage_accounts", "custpage_accounts_id", x + 1) != null && request.getLineItemValue("custpage_accounts", "custpage_accounts_id", x + 1) != null)
+          var asset = nlapiLoadRecord("customrecord_asset", request.getLineItemValue("custpage_accounts", "custpage_accounts_id", x + 1));
+        else
+          var asset = nlapiCreateRecord("customrecord_asset");
+
+        asset.setFieldValue("name", request.getLineItemValue("custpage_accounts", "custpage_accounts_name", x + 1));
+        asset.setFieldValue("custrecord_asset_date", request.getLineItemValue("custpage_accounts", "custpage_accounts_date", x + 1));
+        asset.setFieldValue("custrecord_asset_value", request.getLineItemValue("custpage_accounts", "custpage_accounts_value", x + 1));
+        asset.setFieldValue("custrecord_asset_estate", estateId);
+        assetId = nlapiSubmitRecord(asset, true, true);
+      }
+
+      //Create claim records
+      for (var x = 0; x < request.getParameter("custpage_claims"); x++) {
+        if (request.getLineItemValue("custpage_claims", "custpage_claims_id", x + 1) != null && request.getLineItemValue("custpage_claims", "custpage_claims_id", x + 1) != null)
+          var claims = nlapiLoadRecord("customrecord_claim", request.getLineItemValue("custpage_claims", "custpage_claims_id", x + 1));
+        else
+          var claims = nlapiCreateRecord("customrecord_claim");
+
+        claims.setFieldValue("name", request.getLineItemValue("custpage_claims", "custpage_claims_name", x + 1));
+        claims.setFieldValue("custrecord_asset_date", request.getLineItemValue("custpage_claims", "custpage_claims_date", x + 1));
+        claims.setFieldValue("custrecord_asset_value", request.getLineItemValue("custpage_claims", "custpage_claims_value", x + 1));
+        claims.setFieldValue("custrecord_asset_estate", estateId);
+        claimsId = nlapiSubmitRecord(claims, true, true);
+      }
+
+      //Create quote
+      var quote = nlapiTransformRecord("customer", customerId, "estimate");
+      quote.setFieldValue("custbody_rebate_1_month", request.getParameter("custpage_early_rebate_1"));
+      quote.setFieldValue("custbody_rebate_2_month", request.getParameter("custpage_early_rebate_2"));
+      quote.setFieldValue("custbody_rebate_3_month", request.getParameter("custpage_early_rebate_3"));
+      quote.setFieldValue("custbody_rebate_1_amount", request.getParameter("custpage_early_rebate_1_amt"));
+      quote.setFieldValue("custbody_rebate_2_amount", request.getParameter("custpage_early_rebate_2_amt"));
+      quote.setFieldValue("custbody_rebate_3_amount", request.getParameter("custpage_early_rebate_3_amt"));
+
+      quote.selectNewLineItem("item");
+      quote.setCurrentLineItemValue("item", "item", "7"); //Cash Advanced to Client
+      quote.setCurrentLineItemValue("item", "rate", request.getParameter("custpage_desired_advance"));
+      quote.setCurrentLineItemValue("item", "amount", request.getParameter("custpage_desired_advance"));
+      quote.commitLineItem("item");
+
+      quote.selectNewLineItem("item");
+      quote.setCurrentLineItemValue("item", "item", "5"); //Fixed Fee
+      quote.setCurrentLineItemValue("item", "rate", request.getParameter("custpage_desired_advance"));
+      quote.setCurrentLineItemValue("item", "amount", request.getParameter("custpage_desired_advance"));
+      quote.commitLineItem("item");
+
+      quote.selectNewLineItem("item");
+      quote.setCurrentLineItemValue("item", "item", "6"); //Deferred Revenue
+      quote.setCurrentLineItemValue("item", "rate", request.getParameter("custpage_desired_advance"));
+      quote.setCurrentLineItemValue("item", "amount", request.getParameter("custpage_desired_advance"));
+      quote.commitLineItem("item");
+
+      var quoteId = nlapiSubmitRecord(quote, true, true);
+
+      response.sendRedirect("RECORD", "estimate", quote);
     }
   }
-  
-  
-  function searchChildRecords(customerId) {
-    if (customerId) {
-  
-      var filters = [];
-      filters.push(new nlobjSearchFilter("parent", null, "anyof", customerId));
-  
-      var cols = [];
-      cols.push(new nlobjSearchColumn("internalid"));
-  
-      var results = nlapiSearchRecord("customer", null, filters, cols);
-      if (results) {
-        var ids = [];
-        for (var x = 0; x < results.length; x++) {
-          var customerid = results[x].getId();
-          ids.push(customerid);
-        }
-        nlapiLogExecution('DEBUG', 'Child Records', 'Child ids--' + JSON.stringify(ids));
-        return ids;
-      } else {
-        return [];
+}
+
+
+function searchChildRecords(customerId) {
+  if (customerId) {
+
+    var filters = [];
+    filters.push(new nlobjSearchFilter("parent", null, "anyof", customerId));
+
+    var cols = [];
+    cols.push(new nlobjSearchColumn("internalid"));
+
+    var results = nlapiSearchRecord("customer", null, filters, cols);
+    if (results) {
+      var ids = [];
+      for (var x = 0; x < results.length; x++) {
+        var customerid = results[x].getId();
+        ids.push(customerid);
       }
+      nlapiLogExecution('DEBUG', 'Child Records', 'Child ids--' + JSON.stringify(ids));
+      return ids;
     } else {
       return [];
     }
+  } else {
+    return [];
   }
-  
-  function searchTransactionForCustomer(customerid) {
-  
-  
-    var transactionSearch = nlapiSearchRecord("transaction", null,
+}
+
+function searchTransactionForCustomer(customerid) {
+
+
+  var transactionSearch = nlapiSearchRecord("transaction", null,
       [
-        ["type", "anyof", "CustPymt", "CashRfnd", "CashSale", "CustCred", "CustDep", "CustRfnd", "CustInvc", "SalesOrd", "Estimate"],
-        "AND",
-        ["name", "anyof", customerid]
-      ],
-      [
+       ["type", "anyof", "CustPymt", "CashRfnd", "CashSale", "CustCred", "CustDep", "CustRfnd", "CustInvc", "SalesOrd", "Estimate"],
+       "AND",
+       ["name", "anyof", customerid]
+       ],
+       [
         new nlobjSearchColumn("internalid"),
-      ]
-    );
-  
-    if (transactionSearch && transactionSearch.length > 0) {
-      return true;
-    } else {
-      return false;
-    }
-  
+        ]
+  );
+
+  if (transactionSearch && transactionSearch.length > 0) {
+    return true;
+  } else {
+    return false;
   }
-  
-  
-  function creaeErrorMessage(errorMsg) {
-  
-  
-  
+
+}
+
+
+function creaeErrorMessage(errorMsg) {
+
+
+
+}
+
+function mapState(stateAbbrev) {
+  var classId = "";
+
+  switch (stateAbbrev) {
+  case "AL":
+    classId = "4";
+    break;
+  case "AK":
+    classId = "5";
+    break;
+  case "AZ":
+    classId = "6";
+    break;
+  case "AR":
+    classId = "7";
+    break;
+  case "CA":
+    classId = "1";
+    break;
+  case "CO":
+    classId = "8";
+    break;
+  case "CT":
+    classId = "9";
+    break;
+  case "DE":
+    classId = "10";
+    break;
+  case "FL":
+    classId = "3";
+    break;
+  case "GA":
+    classId = "11";
+    break;
+  case "HI":
+    classId = "12";
+    break;
+  case "ID":
+    classId = "13";
+    break;
+  case "IL":
+    classId = "14";
+    break;
+  case "IN":
+    classId = "15";
+    break;
+  case "IA":
+    classId = "16";
+    break;
+  case "KS":
+    classId = "17";
+    break;
+  case "KY":
+    classId = "18";
+    break;
+  case "LA":
+    classId = "19";
+    break;
+  case "ME":
+    classId = "20";
+    break;
+  case "MD":
+    classId = "21";
+    break;
+  case "MA":
+    classId = "22";
+    break;
+  case "MI":
+    classId = "23";
+    break;
+  case "MN":
+    classId = "24";
+    break;
+  case "MS":
+    classId = "25";
+    break;
+  case "MO":
+    classId = "26";
+    break;
+  case "MT":
+    classId = "27";
+    break;
+  case "NE":
+    classId = "28";
+    break;
+  case "NV":
+    classId = "29";
+    break;
+  case "NH":
+    classId = "30";
+    break;
+  case "NJ":
+    classId = "31";
+    break;
+  case "NM":
+    classId = "32";
+    break;
+  case "NY":
+    classId = "2";
+    break;
+  case "NC":
+    classId = "33";
+    break;
+  case "ND":
+    classId = "34";
+    break;
+  case "OH":
+    classId = "35";
+    break;
+  case "OK":
+    classId = "36";
+    break;
+  case "OR":
+    classId = "37";
+    break;
+  case "PA":
+    classId = "38";
+    break;
+  case "RI":
+    classId = "39";
+    break;
+  case "SC":
+    classId = "40";
+    break;
+  case "SD":
+    classId = "41";
+    break;
+  case "TN":
+    classId = "42";
+    break;
+  case "TX":
+    classId = "43";
+    break;
+  case "UT":
+    classId = "44";
+    break;
+  case "VT":
+    classId = "45";
+    break;
+  case "VA":
+    classId = "46";
+    break;
+  case "WA":
+    classId = "47";
+    break;
+  case "WV":
+    classId = "48";
+    break;
+  case "WI":
+    classId = "49";
+    break;
+  case "WY":
+    classId = "50";
+    break;
   }
-  
-  function mapState(stateAbbrev) {
-    var classId = "";
-  
-    switch (stateAbbrev) {
-      case "AL":
-        classId = "4";
-        break;
-      case "AK":
-        classId = "5";
-        break;
-      case "AZ":
-        classId = "6";
-        break;
-      case "AR":
-        classId = "7";
-        break;
-      case "CA":
-        classId = "1";
-        break;
-      case "CO":
-        classId = "8";
-        break;
-      case "CT":
-        classId = "9";
-        break;
-      case "DE":
-        classId = "10";
-        break;
-      case "FL":
-        classId = "3";
-        break;
-      case "GA":
-        classId = "11";
-        break;
-      case "HI":
-        classId = "12";
-        break;
-      case "ID":
-        classId = "13";
-        break;
-      case "IL":
-        classId = "14";
-        break;
-      case "IN":
-        classId = "15";
-        break;
-      case "IA":
-        classId = "16";
-        break;
-      case "KS":
-        classId = "17";
-        break;
-      case "KY":
-        classId = "18";
-        break;
-      case "LA":
-        classId = "19";
-        break;
-      case "ME":
-        classId = "20";
-        break;
-      case "MD":
-        classId = "21";
-        break;
-      case "MA":
-        classId = "22";
-        break;
-      case "MI":
-        classId = "23";
-        break;
-      case "MN":
-        classId = "24";
-        break;
-      case "MS":
-        classId = "25";
-        break;
-      case "MO":
-        classId = "26";
-        break;
-      case "MT":
-        classId = "27";
-        break;
-      case "NE":
-        classId = "28";
-        break;
-      case "NV":
-        classId = "29";
-        break;
-      case "NH":
-        classId = "30";
-        break;
-      case "NJ":
-        classId = "31";
-        break;
-      case "NM":
-        classId = "32";
-        break;
-      case "NY":
-        classId = "2";
-        break;
-      case "NC":
-        classId = "33";
-        break;
-      case "ND":
-        classId = "34";
-        break;
-      case "OH":
-        classId = "35";
-        break;
-      case "OK":
-        classId = "36";
-        break;
-      case "OR":
-        classId = "37";
-        break;
-      case "PA":
-        classId = "38";
-        break;
-      case "RI":
-        classId = "39";
-        break;
-      case "SC":
-        classId = "40";
-        break;
-      case "SD":
-        classId = "41";
-        break;
-      case "TN":
-        classId = "42";
-        break;
-      case "TX":
-        classId = "43";
-        break;
-      case "UT":
-        classId = "44";
-        break;
-      case "VT":
-        classId = "45";
-        break;
-      case "VA":
-        classId = "46";
-        break;
-      case "WA":
-        classId = "47";
-        break;
-      case "WV":
-        classId = "48";
-        break;
-      case "WI":
-        classId = "49";
-        break;
-      case "WY":
-        classId = "50";
-        break;
-    }
-  
-    return classId;
-  }
+
+  return classId;
+}
