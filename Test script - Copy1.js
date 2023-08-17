@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
- * @NModuleScope SameAccount
+ * @NModuleScope SameAccount Testing Git Hub
  */
 define(['N/redirect','N/record'], function (redirect,record) {‌
 
